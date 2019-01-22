@@ -25,6 +25,7 @@
 #pragma once
 
 #include "FeatureProviderInterface.h"
+#include <QProcess>
 
 class LockWidget;
 
@@ -98,6 +99,22 @@ private:
 	const Feature m_screenRecordFeature;
 	const FeatureList m_features;
 
-	LockWidget* m_lockWidget;
+    //LockWidget* m_lockWidget;
+
+    QProcess *mTranscodingProcess;
+    QProcess *mInputPlayProcess;
+    QString mOutputString;
+
+    QString outputFile;
+
+    bool recording;
+
+
+private slots:
+    void startRecording();
+    void processStarted();
+    void processEnded();
+    void stopRecording();
+    void stopUI();
 
 };

@@ -42,16 +42,22 @@ ScreenRecordFeaturePlugin::ScreenRecordFeaturePlugin( QObject* parent ) :
 							 "In this mode all input devices are locked and "
 							 "the screens are blacked." ),
 						 QStringLiteral(":/screenrecord/system-lock-screen.png") ),
-	m_features( { m_screenRecordFeature } ),
-	m_lockWidget( nullptr )
+    m_features( { m_screenRecordFeature } )
 {
+    mTranscodingProcess = new QProcess(this);
+    this->recording = false; //initialize the flag that considers the recording phase
+    this->outputFile.clear();
+
+    connect(mTranscodingProcess, SIGNAL(started()), this, SLOT(processStarted()));
+    //connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
+    //connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
 }
 
 
 
 ScreenRecordFeaturePlugin::~ScreenRecordFeaturePlugin()
 {
-	delete m_lockWidget;
+
 }
 
 
@@ -134,23 +140,13 @@ bool ScreenRecordFeaturePlugin::handleFeatureMessage( VeyonWorkerInterface& work
 		switch( message.command() )
 		{
 		case StartRecordCommand:
-			if( m_lockWidget == nullptr )
-			{
-				VeyonCore::platform().coreFunctions().disableScreenSaver();
 
-				m_lockWidget = new LockWidget( LockWidget::BackgroundPixmap,
-											   QPixmap( QStringLiteral(":/screenrecord/locked-screen-background.png" ) ) );
-			}
+            this->startRecording();
 			return true;
 
 		case StopRecordCommand:
-			delete m_lockWidget;
-			m_lockWidget = nullptr;
 
-			VeyonCore::platform().coreFunctions().restoreScreenSaverSettings();
-
-			QCoreApplication::quit();
-
+            this->stopRecording();
 			return true;
 
 		default:
@@ -159,4 +155,60 @@ bool ScreenRecordFeaturePlugin::handleFeatureMessage( VeyonWorkerInterface& work
 	}
 
 	return false;
+}
+
+void ScreenRecordFeaturePlugin::processStarted()
+{
+    qDebug() << "processStarted()";
+}
+
+void ScreenRecordFeaturePlugin::processEnded()
+{
+    qDebug() << "processEnded()";
+}
+
+void ScreenRecordFeaturePlugin::stopRecording()
+{
+    if(this->recording)
+    {
+        mTranscodingProcess->write("q");
+        mTranscodingProcess->waitForFinished(-1);
+        this->stopUI();
+    }
+}
+
+void ScreenRecordFeaturePlugin::stopUI()
+{
+    recording = false;
+}
+
+void ScreenRecordFeaturePlugin::startRecording()
+{
+    if(this->recording)
+    {
+        this->stopRecording();
+    } else
+    {
+
+        QString program = QStringLiteral("ffmpeg");
+
+        QStringList arguments;
+        this->outputFile = QStringLiteral("c://output.avi");
+        arguments << QStringLiteral("-f") << QStringLiteral("gdigrab") << QStringLiteral("-s") << QStringLiteral("1920x1080")
+                  << QStringLiteral("-r") << QStringLiteral("10") << QStringLiteral("-i") << QStringLiteral("desktop")
+                  << QStringLiteral("-qscale") << QStringLiteral("1") << this->outputFile;
+
+        qDebug() << arguments;
+        if (QFile::exists(this->outputFile))
+        {
+            QFile::remove(this->outputFile);
+            while(QFile::exists(this->outputFile)) {
+               qDebug() << "output file still there";
+            }
+        }
+
+        mTranscodingProcess->setProcessChannelMode(QProcess::MergedChannels);
+        mTranscodingProcess->start(program, arguments);
+        recording= true;
+    }
 }
