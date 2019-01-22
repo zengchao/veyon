@@ -34,9 +34,9 @@
 ScreenRecordFeaturePlugin::ScreenRecordFeaturePlugin( QObject* parent ) :
 	QObject( parent ),
 	m_screenRecordFeature( Feature::Mode | Feature::AllComponents,
-						 Feature::Uid( "ccb535a2-1d24-4cc1-a709-8b47d2b2ac79" ),
+                         Feature::Uid( "3b48aa3b-62aa-4260-a959-a69856b11385" ),
 						 Feature::Uid(),
-						 tr( "Lock" ), tr( "Unlock" ),
+                         tr( "Start Recording" ), tr( "Stop Recording" ),
 						 tr( "To reclaim all user's full attention you can lock "
 							 "their computers using this button. "
 							 "In this mode all input devices are locked and "
