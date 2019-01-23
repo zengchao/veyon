@@ -116,5 +116,8 @@ private slots:
     void processEnded();
     void stopRecording();
     void stopUI();
+    void readyReadStandardOutput();
+    void encodingFinished();
+    void endRecordingAndClose();
 
 };

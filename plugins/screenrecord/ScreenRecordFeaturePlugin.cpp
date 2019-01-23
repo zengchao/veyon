@@ -44,13 +44,13 @@ ScreenRecordFeaturePlugin::ScreenRecordFeaturePlugin( QObject* parent ) :
 						 QStringLiteral(":/screenrecord/system-lock-screen.png") ),
     m_features( { m_screenRecordFeature } )
 {
-    mTranscodingProcess = new QProcess(this);
+    this->mTranscodingProcess = new QProcess(this);
     this->recording = false; //initialize the flag that considers the recording phase
     this->outputFile.clear();
 
     connect(mTranscodingProcess, SIGNAL(started()), this, SLOT(processStarted()));
-    //connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
-    //connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
+    connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
+    connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
 }
 
 
@@ -60,7 +60,20 @@ ScreenRecordFeaturePlugin::~ScreenRecordFeaturePlugin()
 
 }
 
+void ScreenRecordFeaturePlugin::readyReadStandardOutput()
+{
 
+}
+
+void ScreenRecordFeaturePlugin::encodingFinished()
+{
+    this->processEnded();
+}
+
+void ScreenRecordFeaturePlugin::endRecordingAndClose()
+{
+    this->stopRecording();
+}
 
 bool ScreenRecordFeaturePlugin::startFeature( VeyonMasterInterface& master, const Feature& feature,
 											const ComputerControlInterfaceList& computerControlInterfaces )
@@ -171,15 +184,15 @@ void ScreenRecordFeaturePlugin::stopRecording()
 {
     if(this->recording)
     {
-        mTranscodingProcess->write("q");
-        mTranscodingProcess->waitForFinished(-1);
+        this->mTranscodingProcess->write("q");
+        this->mTranscodingProcess->waitForFinished(-1);
         this->stopUI();
     }
 }
 
 void ScreenRecordFeaturePlugin::stopUI()
 {
-    recording = false;
+    this->recording = false;
 }
 
 void ScreenRecordFeaturePlugin::startRecording()
@@ -193,7 +206,7 @@ void ScreenRecordFeaturePlugin::startRecording()
         QString program = QStringLiteral("ffmpeg");
 
         QStringList arguments;
-        this->outputFile = QStringLiteral("output.avi");
+        this->outputFile = QStringLiteral("c:\\output.avi");
         /*arguments << QStringLiteral("-f") << QStringLiteral("gdigrab") << QStringLiteral("-s") << QStringLiteral("1920x1080")
                   << QStringLiteral("-r") << QStringLiteral("10") << QStringLiteral("-i") << QStringLiteral("desktop")
                   << QStringLiteral("-qscale") << QStringLiteral("1") << this->outputFile;*/
@@ -211,8 +224,8 @@ void ScreenRecordFeaturePlugin::startRecording()
             }
         }
 
-        mTranscodingProcess->setProcessChannelMode(QProcess::MergedChannels);
-        mTranscodingProcess->start(program, arguments);
-        recording= true;
+        this->mTranscodingProcess->setProcessChannelMode(QProcess::MergedChannels);
+        this->mTranscodingProcess->start(program, arguments);
+        this->recording= true;
     }
 }
