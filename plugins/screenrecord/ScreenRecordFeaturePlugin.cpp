@@ -42,22 +42,16 @@ ScreenRecordFeaturePlugin::ScreenRecordFeaturePlugin( QObject* parent ) :
 							 "In this mode all input devices are locked and "
 							 "the screens are blacked." ),
 						 QStringLiteral(":/screenrecord/system-lock-screen.png") ),
-    m_features( { m_screenRecordFeature } )
+    m_features( { m_screenRecordFeature } ),
+    mTranscodingProcess(nullptr)
 {
-    this->mTranscodingProcess = new QProcess(this);
-    this->recording = false; //initialize the flag that considers the recording phase
-    this->outputFile.clear();
-
-    connect(mTranscodingProcess, SIGNAL(started()), this, SLOT(processStarted()));
-    connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
-    connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
 }
 
 
 
 ScreenRecordFeaturePlugin::~ScreenRecordFeaturePlugin()
 {
-
+    delete mTranscodingProcess;
 }
 
 void ScreenRecordFeaturePlugin::readyReadStandardOutput()
@@ -153,13 +147,27 @@ bool ScreenRecordFeaturePlugin::handleFeatureMessage( VeyonWorkerInterface& work
 		switch( message.command() )
 		{
 		case StartRecordCommand:
+            if( mTranscodingProcess == nullptr )
+            {
+                mTranscodingProcess = new QProcess(this);
+                this->recording = false; //initialize the flag that considers the recording phase
+                this->outputFile.clear();
+                connect(mTranscodingProcess, SIGNAL(started()), this, SLOT(processStarted()));
+                connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
+                connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
+                this->startRecording();
+            }
 
-            this->startRecording();
 			return true;
 
 		case StopRecordCommand:
 
             this->stopRecording();
+
+            delete mTranscodingProcess;
+            mTranscodingProcess = nullptr;
+            QCoreApplication::quit();
+
 			return true;
 
 		default:
@@ -184,8 +192,8 @@ void ScreenRecordFeaturePlugin::stopRecording()
 {
     if(this->recording)
     {
-        this->mTranscodingProcess->write("q");
-        this->mTranscodingProcess->waitForFinished(-1);
+        mTranscodingProcess->write("q");
+        mTranscodingProcess->waitForFinished(-1);
         this->stopUI();
     }
 }
@@ -224,8 +232,8 @@ void ScreenRecordFeaturePlugin::startRecording()
             }
         }
 
-        this->mTranscodingProcess->setProcessChannelMode(QProcess::MergedChannels);
-        this->mTranscodingProcess->start(program, arguments);
+        mTranscodingProcess->setProcessChannelMode(QProcess::MergedChannels);
+        mTranscodingProcess->start(program, arguments);
         this->recording= true;
     }
 }

@@ -102,7 +102,7 @@ private:
     //LockWidget* m_lockWidget;
 
     QProcess *mTranscodingProcess;
-    QProcess *mInputPlayProcess;
+
     QString mOutputString;
 
     QString outputFile;
