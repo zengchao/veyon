@@ -215,12 +215,12 @@ void ScreenRecordFeaturePlugin::startRecording()
 
         QStringList arguments;
         this->outputFile = QStringLiteral("c:\\output.avi");
-        /*arguments << QStringLiteral("-f") << QStringLiteral("gdigrab") << QStringLiteral("-s") << QStringLiteral("1920x1080")
-                  << QStringLiteral("-r") << QStringLiteral("10") << QStringLiteral("-i") << QStringLiteral("desktop")
-                  << QStringLiteral("-qscale") << QStringLiteral("1") << this->outputFile;*/
-
-
+        //machine_name + yyyymmddhhmmss
+        //default file path
+        //custom ffmpeg parameters
         arguments << QStringLiteral("-f") << QStringLiteral("gdigrab") << QStringLiteral("-i") << QStringLiteral("desktop")
+                  << QStringLiteral("-r") << QStringLiteral("25") << QStringLiteral("-b:v") << QStringLiteral("1500k")
+                  << QStringLiteral("-q:v") << QStringLiteral("0.01")
                   << this->outputFile;
 
         qDebug() << arguments;
