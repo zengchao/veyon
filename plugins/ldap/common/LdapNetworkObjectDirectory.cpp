@@ -40,7 +40,7 @@ NetworkObjectList LdapNetworkObjectDirectory::queryObjects( NetworkObject::Type 
 {
 	switch( type )
 	{
-	case NetworkObject::Group: return queryGroups( name );
+	case NetworkObject::Location: return queryLocations( name );
 	case NetworkObject::Host: return queryHosts( name );
 	default: break;
 	}
@@ -55,9 +55,9 @@ NetworkObjectList LdapNetworkObjectDirectory::queryParents( const NetworkObject&
 	switch( object.type() )
 	{
 	case NetworkObject::Host:
-		return { NetworkObject( NetworkObject::Group,
-								m_ldapDirectory.computerRoomsOfComputer( object.directoryAddress() ).value( 0 ) ) };
-	case NetworkObject::Group:
+		return { NetworkObject( NetworkObject::Location,
+								m_ldapDirectory.locationsOfComputer( object.directoryAddress() ).value( 0 ) ) };
+	case NetworkObject::Location:
 		return { NetworkObject::Root };
 	default:
 		break;
@@ -70,72 +70,70 @@ NetworkObjectList LdapNetworkObjectDirectory::queryParents( const NetworkObject&
 
 void LdapNetworkObjectDirectory::update()
 {
-	const auto groups = m_ldapDirectory.computerRooms();
+	const auto locations = m_ldapDirectory.computerLocations();
 	const NetworkObject rootObject( NetworkObject::Root );
 
-	for( const auto& computerRoom : qAsConst( groups ) )
+	for( const auto& location : qAsConst( locations ) )
 	{
-		const NetworkObject computerRoomObject( NetworkObject::Group, computerRoom );
+		const NetworkObject locationObject( NetworkObject::Location, location );
 
-		addOrUpdateObject( computerRoomObject, rootObject );
+		addOrUpdateObject( locationObject, rootObject );
 
-		updateGroup( computerRoomObject );
+		updateLocation( locationObject );
 	}
 
-	removeObjects( NetworkObject::Root, [groups]( const NetworkObject& object ) {
-		return object.type() == NetworkObject::Group && groups.contains( object.name() ) == false; } );
+	removeObjects( NetworkObject::Root, [locations]( const NetworkObject& object ) {
+		return object.type() == NetworkObject::Location && locations.contains( object.name() ) == false; } );
 }
 
 
 
-void LdapNetworkObjectDirectory::updateGroup( const NetworkObject& groupObject )
+void LdapNetworkObjectDirectory::updateLocation( const NetworkObject& locationObject )
 {
-	const auto computers = m_ldapDirectory.computerRoomMembers( groupObject.name() );
-
-	bool hasMacAddressAttribute = ( m_ldapDirectory.configuration().computerMacAddressAttribute().count() > 0 );
+	const auto computers = m_ldapDirectory.computerLocationEntries( locationObject.name() );
 
 	for( const auto& computer : qAsConst( computers ) )
 	{
-		const auto hostObject = computerToObject( computer, hasMacAddressAttribute );
+		const auto hostObject = computerToObject( &m_ldapDirectory, computer );
 		if( hostObject.type() == NetworkObject::Host )
 		{
-			addOrUpdateObject( hostObject, groupObject );
+			addOrUpdateObject( hostObject, locationObject );
 		}
 	}
 
-	removeObjects( groupObject, [computers]( const NetworkObject& object ) {
+	removeObjects( locationObject, [computers]( const NetworkObject& object ) {
 		return object.type() == NetworkObject::Host && computers.contains( object.directoryAddress() ) == false; } );
 }
 
 
 
-NetworkObjectList LdapNetworkObjectDirectory::queryGroups( const QString& name )
+NetworkObjectList LdapNetworkObjectDirectory::queryLocations( const QString& name )
 {
-	const auto groups = m_ldapDirectory.computerRooms( name );
+	const auto locations = m_ldapDirectory.computerLocations( name );
 
-	NetworkObjectList groupObjects;
-	groupObjects.reserve( groups.size() );
+	NetworkObjectList locationObjects;
+	locationObjects.reserve( locations.size() );
 
-	for( const auto& group : groups )
+	for( const auto& location : locations )
 	{
-		groupObjects.append( NetworkObject( NetworkObject::Group, group ) );
+		locationObjects.append( NetworkObject( NetworkObject::Location, location ) );
 	}
 
-	return groupObjects;
+	return locationObjects;
 }
 
 
 
 NetworkObjectList LdapNetworkObjectDirectory::queryHosts( const QString& name )
 {
-	const auto computers = m_ldapDirectory.computers( name );
+	const auto computers = m_ldapDirectory.computersByHostName( name );
 
 	NetworkObjectList hostObjects;
 	hostObjects.reserve( computers.size() );
 
 	for( const auto& computer : computers )
 	{
-		hostObjects.append( computerToObject( computer, false ) );
+		hostObjects.append( computerToObject( &m_ldapDirectory, computer ) );
 	}
 
 	return hostObjects;
@@ -143,23 +141,32 @@ NetworkObjectList LdapNetworkObjectDirectory::queryHosts( const QString& name )
 
 
 
-NetworkObject LdapNetworkObjectDirectory::computerToObject( const QString& computerDn, bool populateMacAddres )
+NetworkObject LdapNetworkObjectDirectory::computerToObject( LdapDirectory* directory, const QString& computerDn )
 {
-	const auto computerHostName = m_ldapDirectory.computerHostName( computerDn );
-	if( computerHostName.isEmpty() )
+	auto hostNameAttribute = directory->computerHostNameAttribute();
+	if( hostNameAttribute.isEmpty() )
 	{
-		return NetworkObject::None;
+		hostNameAttribute = QStringLiteral("cn");
 	}
 
-	QString computerMacAddress;
-	if( populateMacAddres )
+	QStringList computerAttributes{ hostNameAttribute };
+	if( directory->computerMacAddressAttribute().isEmpty() == false )
 	{
-		computerMacAddress = m_ldapDirectory.computerMacAddress( computerDn );
+		computerAttributes.append( directory->computerMacAddressAttribute() );
 	}
 
-	return NetworkObject( NetworkObject::Host,
-						  computerHostName,
-						  computerHostName,
-						  computerMacAddress,
-						  computerDn );
+	const auto macAddressIndex = computerAttributes.indexOf( directory->computerMacAddressAttribute() );
+
+	const auto computers = directory->client().queryObjects( computerDn, computerAttributes,
+															 directory->computersFilter(), LdapClient::Scope::Base );
+	if( computers.isEmpty() == false )
+	{
+		const auto& computer = computers.first();
+		const auto hostName = computer[hostNameAttribute].value( 0 );
+		const auto macAddress = ( macAddressIndex >= 0 ) ? computer[computerAttributes[macAddressIndex]].value( 0 ) : QString();
+
+		return NetworkObject( NetworkObject::Host, hostName, hostName, macAddress, computer.firstKey() );
+	}
+
+	return NetworkObject::None;
 }
