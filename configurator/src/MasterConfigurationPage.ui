@@ -2,13 +2,18 @@
 <ui version="4.0">
  <class>MasterConfigurationPage</class>
  <widget class="QWidget" name="MasterConfigurationPage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>592</width>
+    <height>609</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string notr="true">Form</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_6">
-   <property name="topMargin">
-    <number>0</number>
-   </property>
-   <property name="bottomMargin">
-    <number>0</number>
-   </property>
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
@@ -31,8 +36,15 @@
           <property name="horizontalSpacing">
            <number>10</number>
           </property>
-          <item row="0" column="2">
-           <widget class="QToolButton" name="openUserConfigurationDirectory">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>User configuration</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QToolButton" name="openScreenshotDirectory">
             <property name="text">
              <string>...</string>
             </property>
@@ -42,10 +54,14 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_2">
+          <item row="0" column="2">
+           <widget class="QToolButton" name="openUserConfigurationDirectory">
             <property name="text">
-             <string>User configuration</string>
+             <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../../core/resources/core.qrc">
+              <normaloff>:/core/document-open.png</normaloff>:/core/document-open.png</iconset>
             </property>
            </widget>
           </item>
@@ -62,8 +78,18 @@
           <item row="1" column="1">
            <widget class="QLineEdit" name="screenshotDirectory"/>
           </item>
-          <item row="1" column="2">
-           <widget class="QToolButton" name="openScreenshotDirectory">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>Screen Recording</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="screenRecordingDirectory"/>
+          </item>
+          <item row="2" column="2">
+           <widget class="QToolButton" name="openScreenRecordingDirectory">
             <property name="text">
              <string>...</string>
             </property>
@@ -429,8 +455,10 @@
   <tabstop>tabWidget</tabstop>
   <tabstop>userConfigurationDirectory</tabstop>
   <tabstop>screenshotDirectory</tabstop>
+  <tabstop>screenRecordingDirectory</tabstop>
   <tabstop>openUserConfigurationDirectory</tabstop>
   <tabstop>openScreenshotDirectory</tabstop>
+  <tabstop>openScreenRecordingDirectory</tabstop>
   <tabstop>computerMonitoringUpdateInterval</tabstop>
   <tabstop>computerMonitoringBackgroundColor</tabstop>
   <tabstop>computerMonitoringTextColor</tabstop>
