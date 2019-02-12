@@ -55,7 +55,7 @@ void Screenshot::take( const ComputerControlInterface::Pointer& computerControlI
 		userLogin = tr( "unknown" );
 	}
 
-	const auto dir = VeyonCore::filesystem().expandPath( VeyonCore::config().screenshotDirectory() );
+    const auto dir = VeyonCore::filesystem().expandPath( VeyonCore::config().screenshotDirectory() );
 
 	if( VeyonCore::filesystem().ensurePathExists( dir ) == false )
 	{
