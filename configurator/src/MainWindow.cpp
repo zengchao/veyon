@@ -39,8 +39,8 @@
 #include "MainWindow.h"
 #include "PluginManager.h"
 
+#include "Filesystem.h"
 #include "ui_MainWindow.h"
-
 
 MainWindow::MainWindow( QWidget* parent ) :
 	QMainWindow( parent ),
@@ -303,6 +303,20 @@ bool MainWindow::applyConfiguration()
 							   configurationManager.errorString() );
 		return false;
 	}
+    const auto confFilePath = VeyonCore::filesystem().expandPath(VeyonCore::config().screenRecordingDirectory());
+    if( VeyonCore::filesystem().ensurePathExists( confFilePath ) == false )
+    {
+        const auto msg = tr( "Could not take a screenRecording as directory %1 doesn't exist and couldn't be created." ).arg( confFilePath );
+        qCritical() << msg.toUtf8().constData();
+        if( qobject_cast<QApplication *>( QCoreApplication::instance() ) )
+        {
+            QMessageBox::critical( nullptr, tr( "ScreenRecording" ), msg );
+        }
+
+        return true;
+    }
+    QString jsonFile = confFilePath+QDir::separator() + QStringLiteral("host.json");
+    saveSettingsToDefaultFile(jsonFile);
 
 	return true;
 }
@@ -353,4 +367,23 @@ void MainWindow::closeEvent( QCloseEvent *closeEvent )
 
 	closeEvent->accept();
 	QMainWindow::closeEvent( closeEvent );
+}
+
+void MainWindow::saveSettingsToDefaultFile(QString& fileName)
+{
+    if( !fileName.isEmpty() )
+    {
+        if( !fileName.endsWith( QStringLiteral(".json"), Qt::CaseInsensitive ) )
+        {
+            fileName += QStringLiteral(".json");
+        }
+
+        bool configChangedPrevious = m_configChanged;
+
+        // write current configuration to output file
+        Configuration::JsonStore( Configuration::JsonStore::System, fileName ).flush( &VeyonCore::config() );
+
+        m_configChanged = configChangedPrevious;
+        ui->buttonBox->setEnabled( m_configChanged );
+    }
 }
