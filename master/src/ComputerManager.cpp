@@ -299,9 +299,10 @@ QString ComputerManager::findRoomOfComputer( const QStringList& hostNames, const
 
 		if( objectType == NetworkObject::Location )
 		{
-			QString room = findRoomOfComputer( hostNames, hostAddresses, entryIndex );
+            QString room = findRoomOfComputer( hostNames, hostAddresses, entryIndex );
 			if( room.isEmpty() == false )
-			{
+            {
+                qDebug() << room;
 				return room;
 			}
 		}
@@ -312,7 +313,7 @@ QString ComputerManager::findRoomOfComputer( const QStringList& hostNames, const
 
 			if( hostNames.contains( currentHost ) ||
 					( currentHostAddress.setAddress( currentHost ) && hostAddresses.contains( currentHostAddress ) ) )
-			{
+            {
 				return model->data( parent, NetworkObjectModel::NameRole ).toString();
 			}
 		}

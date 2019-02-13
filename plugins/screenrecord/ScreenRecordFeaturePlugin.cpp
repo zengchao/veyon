@@ -226,6 +226,7 @@ void ScreenRecordFeaturePlugin::startRecording()
         QStringList arguments;
 
         const auto dir = VeyonCore::filesystem().expandPath(VeyonCore::config().screenRecordingDirectory());
+        qDebug() << dir;
         if( VeyonCore::filesystem().ensurePathExists( dir ) == false )
         {
             const auto msg = tr( "Could not take a screenRecording as directory %1 doesn't exist and couldn't be created." ).arg( dir );
