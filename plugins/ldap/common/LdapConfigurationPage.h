@@ -60,10 +60,11 @@ private:
 	void testComputerGroupTree();
 	void testUserLoginAttribute();
 	void testGroupMemberAttribute();
+	void testComputerDisplayNameAttribute();
 	void testComputerHostNameAttribute();
 	void testComputerMacAddressAttribute();
-	void testComputerRoomAttribute();
-	void testComputerRoomNameAttribute();
+	void testComputerLocationAttribute();
+	void testLocationNameAttribute();
 	void testUsersFilter();
 	void testUserGroupsFilter();
 	void testComputersFilter();
@@ -72,8 +73,8 @@ private:
 	void testGroupsOfUser();
 	void testGroupsOfComputer();
 	void testComputerObjectByIpAddress();
-	void testComputerRoomMembers();
-	void testComputerRooms();
+	void testLocationEntries();
+	void testLocations();
 
 	void browseCACertificateFile();
 
@@ -83,8 +84,9 @@ private:
 	}
 
 	bool testBind( bool quiet );
-	void reportLdapTreeQueryResult( const QString& name, int count, const QString& errorDescription );
-	void reportLdapObjectQueryResults( const QString &objectsName, const QString& parameterName,
+	void reportLdapTreeQueryResult( const QString& name, int count, const QString& parameter,
+									const QString& errorDescription );
+	void reportLdapObjectQueryResults( const QString &objectsName, const QStringList& parameterNames,
 									   const QStringList &results, const LdapDirectory& directory );
 	void reportLdapFilterTestResult( const QString &filterObjects, int count, const QString &errorDescription );
 

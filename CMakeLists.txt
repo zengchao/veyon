@@ -271,7 +271,8 @@ IF(WIN32)
 			COMMAND cp ${CMAKE_SOURCE_DIR}/3rdparty/ddengine/${DLL_DDENGINE} ${TMP}
 			COMMAND cp core/veyon-core.dll server/veyon-server.exe service/veyon-service.exe plugins/vncserver/ultravnc-builtin/vnchooks/vnchooks.dll master/veyon-master.exe configurator/veyon-configurator.exe cli/*.exe worker/veyon-worker.exe ${TMP}
 			COMMAND mkdir -p ${TMP}/plugins
-			COMMAND find plugins/ -name "*.dll" -exec cp '{}' ${TMP}/plugins/ '\;'
+			COMMAND find plugins/ -name '*.dll' -exec cp '{}' ${TMP}/plugins/ '\;'
+			COMMAND mv ${TMP}/plugins/lib*.dll ${TMP}
 			COMMAND mkdir -p ${TMP}/translations
 			COMMAND cp translations/*qm ${TMP}/translations/
 			COMMAND cp ${DLLDIR}/libjpeg-62.dll ${TMP}
@@ -292,7 +293,9 @@ IF(WIN32)
 			COMMAND cp ${DLLDIR}/Qt5Core.dll ${DLLDIR}/Qt5Gui.dll ${DLLDIR}/Qt5Widgets.dll ${DLLDIR}/Qt5Network.dll ${DLLDIR}/Qt5Concurrent.dll ${TMP}
 			COMMAND mkdir -p ${TMP}/platforms
 			COMMAND cp ${DLLDIR_LIB}/qt5/plugins/platforms/qwindows.dll ${TMP}/platforms
-			COMMAND ${STRIP} ${TMP}/*.dll ${TMP}/*.exe ${TMP}/plugins/*.dll ${TMP}/platforms/*.dll ${TMP}/crypto/*.dll
+			COMMAND mkdir -p ${TMP}/styles
+			COMMAND cp ${DLLDIR_LIB}/qt5/plugins/styles/*.dll ${TMP}/styles
+			COMMAND ${STRIP} ${TMP}/*.dll ${TMP}/*.exe ${TMP}/plugins/*.dll ${TMP}/platforms/*.dll ${TMP}/styles/*.dll ${TMP}/crypto/*.dll
 			COMMAND cp ${CMAKE_SOURCE_DIR}/COPYING ${TMP}
 			COMMAND cp ${CMAKE_SOURCE_DIR}/COPYING ${TMP}/LICENSE.TXT
 			COMMAND cp ${CMAKE_SOURCE_DIR}/README.md ${TMP}/README.TXT

@@ -165,16 +165,15 @@ void VncConnection::framebufferCleanup( void* framebuffer )
 
 VncConnection::VncConnection( QObject* parent ) :
 	QThread( parent ),
-	m_state( Disconnected ),
-	m_framebufferState( FramebufferInvalid ),
+	m_state( State::Disconnected ),
+	m_framebufferState( FramebufferState::Invalid ),
 	m_controlFlags(),
 	m_client( nullptr ),
-	m_quality( DefaultQuality ),
+	m_quality( Quality::Default ),
 	m_host(),
 	m_port( -1 ),
 	m_globalMutex(),
 	m_eventQueueMutex(),
-	m_controlFlagMutex(),
 	m_updateIntervalSleeper(),
 	m_framebufferUpdateInterval( 0 ),
 	m_image(),
@@ -233,7 +232,7 @@ QImage VncConnection::image() const
 
 void VncConnection::restart()
 {
-	setControlFlag( RestartConnection, true );
+	setControlFlag( ControlFlag::RestartConnection, true );
 }
 
 
@@ -244,7 +243,7 @@ void VncConnection::stop()
 
 	m_scaledScreen = QImage();
 
-	setControlFlag( TerminateThread, true );
+	setControlFlag( ControlFlag::TerminateThread, true );
 
 	m_updateIntervalSleeper.wakeAll();
 }
@@ -310,7 +309,7 @@ void VncConnection::setPort( int port )
 
 void VncConnection::setServerReachable()
 {
-	setControlFlag( ServerReachable, true );
+	setControlFlag( ControlFlag::ServerReachable, true );
 }
 
 
@@ -326,9 +325,9 @@ void VncConnection::setFramebufferUpdateInterval( int interval )
 void VncConnection::rescaleScreen()
 {
 	if( m_image.size().isValid() == false ||
-			m_scaledSize.isNull() ||
-			hasValidFrameBuffer() == false ||
-			isControlFlagSet( ScaledScreenNeedsUpdate ) == false )
+		m_scaledSize.isNull() ||
+		hasValidFrameBuffer() == false ||
+		isControlFlagSet( ControlFlag::ScaledScreenNeedsUpdate ) == false )
 	{
 		return;
 	}
@@ -336,7 +335,7 @@ void VncConnection::rescaleScreen()
 	QReadLocker locker( &m_imgLock );
 	m_scaledScreen = m_image.scaled( m_scaledSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation );
 
-	setControlFlag( ScaledScreenNeedsUpdate, false );
+	setControlFlag( ControlFlag::ScaledScreenNeedsUpdate, false );
 }
 
 
@@ -369,7 +368,7 @@ void VncConnection::setClientData( int tag, void* data )
 
 void VncConnection::run()
 {
-	while( isControlFlagSet( TerminateThread ) == false )
+	while( isControlFlagSet( ControlFlag::TerminateThread ) == false )
 	{
 		establishConnection();
 		handleConnection();
@@ -383,12 +382,13 @@ void VncConnection::establishConnection()
 {
 	QMutex sleeperMutex;
 
-	setState( Connecting );
-	setControlFlag( RestartConnection, false );
+	setState( State::Connecting );
+	setControlFlag( ControlFlag::RestartConnection, false );
 
-	m_framebufferState = FramebufferInvalid;
+	m_framebufferState = FramebufferState::Invalid;
 
-	while( isControlFlagSet( TerminateThread ) == false && m_state != Connected ) // try to connect as long as the server allows
+	while( isControlFlagSet( ControlFlag::TerminateThread ) == false &&
+		   state() != State::Connected ) // try to connect as long as the server allows
 	{
 		m_client = rfbGetClient( RfbBitsPerSample, RfbSamplesPerPixel, RfbBytesPerPixel );
 		m_client->MallocFrameBuffer = hookInitFrameBuffer;
@@ -418,17 +418,18 @@ void VncConnection::establishConnection()
 
 		m_globalMutex.unlock();
 
-		setControlFlag( ServerReachable, false );
+		setControlFlag( ControlFlag::ServerReachable, false );
 
 		if( rfbInitClient( m_client, nullptr, nullptr ) &&
-				isControlFlagSet( TerminateThread ) == false )
+			isControlFlagSet( ControlFlag::TerminateThread ) == false )
 		{
 			emit connectionEstablished();
 
-			VeyonCore::platform().networkFunctions().configureSocketKeepalive( m_client->sock, true, SocketKeepaliveIdleTime,
-																			   SocketKeepaliveInterval, SocketKeepaliveCount );
+			VeyonCore::platform().networkFunctions().
+					configureSocketKeepalive( static_cast<PlatformNetworkFunctions::Socket>( m_client->sock ), true,
+											  SocketKeepaliveIdleTime, SocketKeepaliveInterval, SocketKeepaliveCount );
 
-			setState( Connected );
+			setState( State::Connected );
 		}
 		else
 		{
@@ -436,31 +437,31 @@ void VncConnection::establishConnection()
 			m_client = nullptr;
 
 			// do not sleep when already requested to stop
-			if( isControlFlagSet( TerminateThread ) )
+			if( isControlFlagSet( ControlFlag::TerminateThread ) )
 			{
 				break;
 			}
 
 			// guess reason why connection failed
-			if( isControlFlagSet( ServerReachable ) == false )
+			if( isControlFlagSet( ControlFlag::ServerReachable ) == false )
 			{
 				if( VeyonCore::platform().networkFunctions().ping( m_host ) == false )
 				{
-					setState( HostOffline );
+					setState( State::HostOffline );
 				}
 				else
 				{
-					setState( ServiceUnreachable );
+					setState( State::ServiceUnreachable );
 				}
 			}
-			else if( m_framebufferState == FramebufferInvalid )
+			else if( m_framebufferState == FramebufferState::Invalid )
 			{
-				setState( AuthenticationFailed );
+				setState( State::AuthenticationFailed );
 			}
 			else
 			{
 				// failed for an unknown reason
-				setState( ConnectionFailed );
+				setState( State::ConnectionFailed );
 			}
 
 			// wait a bit until next connect
@@ -486,14 +487,14 @@ void VncConnection::handleConnection()
 	QMutex sleeperMutex;
 	QElapsedTimer loopTimer;
 
-	while( state() == Connected &&
-		   isControlFlagSet( TerminateThread ) == false &&
-		   isControlFlagSet( RestartConnection ) == false )
+	while( state() == State::Connected &&
+		   isControlFlagSet( ControlFlag::TerminateThread ) == false &&
+		   isControlFlagSet( ControlFlag::RestartConnection ) == false )
 	{
 		loopTimer.start();
 
 		const int i = WaitForMessage( m_client, MessageWaitTimeout );
-		if( isControlFlagSet( TerminateThread ) || i < 0 )
+		if( isControlFlagSet( ControlFlag::TerminateThread ) || i < 0 )
 		{
 			break;
 		}
@@ -515,9 +516,9 @@ void VncConnection::handleConnection()
 
 		const auto remainingUpdateInterval = m_framebufferUpdateInterval - loopTimer.elapsed();
 
-		if( m_framebufferState == FramebufferValid &&
-				remainingUpdateInterval > 0 &&
-				isControlFlagSet( TerminateThread ) == false )
+		if( m_framebufferState == FramebufferState::Valid &&
+			remainingUpdateInterval > 0 &&
+			isControlFlagSet( ControlFlag::TerminateThread ) == false )
 		{
 			sleeperMutex.lock();
 			m_updateIntervalSleeper.wait( &sleeperMutex, QDeadlineTimer( remainingUpdateInterval ) );
@@ -538,17 +539,15 @@ void VncConnection::closeConnection()
 		m_client = nullptr;
 	}
 
-	setState( Disconnected );
+	setState( State::Disconnected );
 }
 
 
 
 void VncConnection::setState( State state )
 {
-	if( state != m_state )
+	if( m_state.exchange( state ) != state )
 	{
-		m_state = state;
-
 		emit stateChanged();
 	}
 }
@@ -557,29 +556,21 @@ void VncConnection::setState( State state )
 
 void VncConnection::setControlFlag( VncConnection::ControlFlag flag, bool on )
 {
-	m_controlFlagMutex.lock();
-#if (QT_VERSION < QT_VERSION_CHECK(5, 7, 0))
-#warning building compat code for Qt < 5.7
 	if( on )
 	{
-		m_controlFlags |= flag;
+		m_controlFlags |= static_cast<int>( flag );
 	}
 	else
 	{
-		m_controlFlags &= ~static_cast<unsigned int>( flag );
+		m_controlFlags &= ~static_cast<int>( flag );
 	}
-#else
-	m_controlFlags.setFlag( flag, on );
-#endif
-	m_controlFlagMutex.unlock();
 }
 
 
 
 bool VncConnection::isControlFlagSet( VncConnection::ControlFlag flag )
 {
-	QMutexLocker locker( &m_controlFlagMutex );
-	return m_controlFlags.testFlag( flag );
+	return m_controlFlags & static_cast<int>( flag );
 }
 
 
@@ -617,14 +608,14 @@ bool VncConnection::initFrameBuffer( rfbClient* client )
 
 	switch( quality() )
 	{
-	case ScreenshotQuality:
+	case Quality::Screenshot:
 		// make sure to use lossless raw encoding
 		client->appData.encodingsString = "raw";
 		break;
-	case RemoteControlQuality:
+	case Quality::RemoteControl:
 		client->appData.useRemoteCursor = true;
 		break;
-	case ThumbnailQuality:
+	case Quality::Thumbnail:
 		client->appData.compressLevel = 9;
 		client->appData.qualityLevel = 5;
 		client->appData.enableJPEG = true;
@@ -633,7 +624,7 @@ bool VncConnection::initFrameBuffer( rfbClient* client )
 		break;
 	}
 
-	m_framebufferState = FramebufferInitialized;
+	m_framebufferState = FramebufferState::Initialized;
 
 	emit framebufferSizeChanged( client->width, client->height );
 
@@ -644,8 +635,8 @@ bool VncConnection::initFrameBuffer( rfbClient* client )
 
 void VncConnection::finishFrameBufferUpdate()
 {
-	m_framebufferState = FramebufferValid;
-	setControlFlag( ScaledScreenNeedsUpdate, true );
+	m_framebufferState = FramebufferState::Valid;
+	setControlFlag( ControlFlag::ScaledScreenNeedsUpdate, true );
 
 	emit framebufferUpdateComplete();
 
@@ -664,7 +655,7 @@ void VncConnection::sendEvents()
 		// unlock the queue mutex during the runtime of ClientEvent::fire()
 		m_eventQueueMutex.unlock();
 
-		if( isControlFlagSet( TerminateThread ) == false )
+		if( isControlFlagSet( ControlFlag::TerminateThread ) == false )
 		{
 			event->fire( m_client );
 		}
@@ -683,7 +674,7 @@ void VncConnection::sendEvents()
 void VncConnection::enqueueEvent( VncEvent* event)
 {
 	QMutexLocker globalLock( &m_globalMutex );
-	if( m_state != Connected )
+	if( state() != State::Connected )
 	{
 		return;
 	}
@@ -726,7 +717,7 @@ void VncConnection::clientCut( const QString& text )
 
 
 qint64 VncConnection::libvncClientDispatcher( char* buffer, const qint64 bytes,
-												   SocketDevice::SocketOperation operation, void* user )
+											  SocketDevice::SocketOperation operation, void* user )
 {
 	auto client = static_cast<rfbClient *>( user );
 	switch( operation )
