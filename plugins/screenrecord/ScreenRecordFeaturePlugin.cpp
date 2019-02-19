@@ -225,7 +225,7 @@ void ScreenRecordFeaturePlugin::startRecording()
 
         QStringList arguments;
 
-        const auto dir = VeyonCore::filesystem().expandPath(VeyonCore::config().screenRecordingDirectory());
+        /*const auto dir = VeyonCore::filesystem().expandPath(VeyonCore::config().screenRecordingDirectory());
         qDebug() << dir;
         if( VeyonCore::filesystem().ensurePathExists( dir ) == false )
         {
@@ -243,8 +243,8 @@ void ScreenRecordFeaturePlugin::startRecording()
                             QTime( QTime::currentTime() ).toString( Qt::ISODate ) ).
                         replace( QLatin1Char(':'), QLatin1Char('-') );
 
-        this->outputFile = dir + QDir::separator() + m_fileName;
-        //this->outputFile = QStringLiteral("c:\\output.avi");
+        this->outputFile = dir + QDir::separator() + m_fileName;*/
+        this->outputFile = QStringLiteral("c:\\output.avi");
         //machine_name + yyyymmddhhmmss
         //default file path
         //custom ffmpeg parameters
