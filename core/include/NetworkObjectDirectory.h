@@ -53,17 +53,20 @@ public:
 	NetworkObject::ModelId childId( NetworkObject::ModelId parent, int index ) const;
 	NetworkObject::ModelId parentId( NetworkObject::ModelId child ) const;
 
+	NetworkObject::ModelId rootId() const;
+
 	virtual NetworkObjectList queryObjects( NetworkObject::Type type, const QString& name = QString() );
 	virtual NetworkObjectList queryParents( const NetworkObject& child );
 
-public slots:
 	virtual void update() = 0;
+	virtual void fetchObjects( const NetworkObject& object );
 
 protected:
 	typedef std::function<bool(const NetworkObject &)> NetworkObjectFilter;
 
 	void addOrUpdateObject( const NetworkObject& networkObject, const NetworkObject& parent );
 	void removeObjects( const NetworkObject& parent, const NetworkObjectFilter& removeObjectFilter );
+	void setObjectPopulated( const NetworkObject& networkObject );
 
 private:
 	QTimer* m_updateTimer;

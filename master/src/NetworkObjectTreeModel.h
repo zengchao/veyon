@@ -45,6 +45,10 @@ public:
 
 	QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const override;
 
+	bool hasChildren( const QModelIndex& parent ) const override;
+	bool canFetchMore( const QModelIndex& parent ) const override;
+	void fetchMore( const QModelIndex& parent ) override;
+
 
 private:
 	void beginInsertObjects( const NetworkObject& parent, int index, int count );
@@ -56,6 +60,7 @@ private:
 	void updateObject( const NetworkObject& parent, int index );
 
 	QModelIndex objectIndex( NetworkObject::ModelId object, int column = 0 ) const;
+	const NetworkObject& object( const QModelIndex& index ) const;
 
 	NetworkObjectDirectory* m_directory;
 

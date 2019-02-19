@@ -150,10 +150,10 @@ ${INSTALL_TYPE}
 ClearErrors
 ExecWait '"$INSTDIR\veyon-wcli.exe" service unregister'
 ${If} $0 != 0
-  ExecWait '"$INSTDIR\veyon-cli.exe" service unregister'
+  ExecWait '"$INSTDIR\veyon-ctl.exe" service unregister'
 ${EndIf}
 Delete "$INSTDIR\*.dll"
-Delete "$INSTDIR\install-interception.exe"
+Delete "$INSTDIR\*.exe"
 Delete "$INSTDIR\plugins\*.dll"
 RmDir /r "$INSTDIR\plugins"
 SetOverwrite on
@@ -180,6 +180,8 @@ File "crypto/*.dll"
 # Qt platform plugin
 SetOutPath "$INSTDIR\platforms"
 File "platforms/qwindows.dll"
+SetOutPath "$INSTDIR\styles"
+File "styles/*.dll"
 # configuration
 ExecWait '"$INSTDIR\veyon-wcli.exe" service register'
 ExecWait '"$INSTDIR\veyon-wcli.exe" config set Network/FirewallExceptionEnabled 1'

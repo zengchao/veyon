@@ -41,7 +41,7 @@ public:
 	{
 		None,
 		Root,
-		Group,
+		Location,
 		Host,
 		Label,
 		TypeCount
@@ -103,11 +103,6 @@ public:
 	const Name& name() const
 	{
 		return m_name;
-	}
-
-	void setName( const Name& name )
-	{
-		m_name = name;
 	}
 
 	const QString& hostAddress() const

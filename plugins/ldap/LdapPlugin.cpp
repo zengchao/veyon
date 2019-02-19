@@ -206,13 +206,13 @@ CommandLinePluginInterface::RunResult LdapPlugin::handle_query( const QStringLis
 	QString filter = arguments.value( 1 );
 	QStringList results;
 
-	if( objectType == QStringLiteral("rooms") )
+	if( objectType == QStringLiteral("locations") )
 	{
-		results = ldapDirectory().computerRooms( filter );
+		results = ldapDirectory().computerLocations( filter );
 	}
 	else if( objectType == QStringLiteral("computers") )
 	{
-		results = ldapDirectory().computers( filter );
+		results = ldapDirectory().computersByHostName( filter );
 	}
 	else if( objectType == QStringLiteral("groups") )
 	{
@@ -260,7 +260,7 @@ CommandLinePluginInterface::RunResult LdapPlugin::handle_help( const QStringList
 				"ldap query <object type> [filter]\n"
 				"\n"
 				"Query objects from configured LDAP directory where <object type> may be one\n"
-				"of \"rooms\", \"computers\", \"groups\" or \"users\". You can optionally\n"
+				"of \"locations\", \"computers\", \"groups\" or \"users\". You can optionally\n"
 				"specify a filter such as \"foo*\".\n"
 				"\n" );
 		return NoResult;

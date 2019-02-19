@@ -22,7 +22,7 @@
  *
  */
 
-#include <QDebug>
+#include <QRegularExpression>
 #include <QHostInfo>
 
 #include "UserGroupsBackendManager.h"
@@ -64,18 +64,18 @@ QStringList AccessControlProvider::userGroups() const
 
 
 
-QStringList AccessControlProvider::rooms() const
+QStringList AccessControlProvider::locations() const
 {
-	auto roomList = objectNames( m_networkObjectDirectory->queryObjects( NetworkObject::Group ) );
+	auto locationList = objectNames( m_networkObjectDirectory->queryObjects( NetworkObject::Location ) );
 
-	std::sort( roomList.begin(), roomList.end() );
+	std::sort( locationList.begin(), locationList.end() );
 
-	return roomList;
+	return locationList;
 }
 
 
 
-QStringList AccessControlProvider::roomsOfComputer( const QString& computer ) const
+QStringList AccessControlProvider::locationsOfComputer( const QString& computer ) const
 {
 	const auto computers = m_networkObjectDirectory->queryObjects( NetworkObject::Host, computer );
 	if( computers.isEmpty() )
@@ -83,19 +83,21 @@ QStringList AccessControlProvider::roomsOfComputer( const QString& computer ) co
 		return {};
 	}
 
-	QStringList roomList;
-	roomList.reserve( computers.size() );
+	QStringList locationList;
+	locationList.reserve( computers.size()*3 );
 
 	for( const auto& computer : computers )
 	{
 		const auto parents = m_networkObjectDirectory->queryParents( computer );
 		for( const auto& parent : parents )
 		{
-			roomList.append( parent.name() );
+			locationList.append( parent.name() );
 		}
 	}
 
-	return roomList;
+	std::sort( locationList.begin(), locationList.end() );
+
+	return locationList;
 }
 
 
@@ -150,7 +152,7 @@ bool AccessControlProvider::processAuthorizedGroups( const QString& accessingUse
 	vDebug() << "AccessControlProvider::processAuthorizedGroups(): processing for user" << accessingUser;
 
 	return intersects( m_userGroupsBackend->groupsOfUser( accessingUser, m_queryDomainGroups ).toSet(),
-						VeyonCore::config().authorizedUserGroups().toSet() );
+					   VeyonCore::config().authorizedUserGroups().toSet() );
 }
 
 
@@ -174,7 +176,7 @@ AccessControlRule::Action AccessControlProvider::processAccessControlRules( cons
 		}
 
 		if( rule.areConditionsIgnored() ||
-				matchConditions( rule, accessingUser, accessingComputer, localUser, localComputer, connectedUsers ) )
+			matchConditions( rule, accessingUser, accessingComputer, localUser, localComputer, connectedUsers ) )
 		{
 			vDebug() << "AccessControlProvider::processAccessControlRules(): rule"
 					 << rule.name() << "matched with action" << rule.action();
@@ -201,10 +203,10 @@ bool AccessControlProvider::isAccessToLocalComputerDenied() const
 	for( const auto& rule : qAsConst( m_accessControlRules ) )
 	{
 		if( rule.action() == AccessControlRule::ActionDeny &&
-				matchConditions( rule, QString(), QString(),
-								 VeyonCore::platform().userFunctions().currentUser(),
-								 QHostInfo::localHostName(),
-								 QStringList() ) )
+			matchConditions( rule, QString(), QString(),
+							 VeyonCore::platform().userFunctions().currentUser(),
+							 QHostInfo::localHostName(),
+							 QStringList() ) )
 		{
 			return true;
 		}
@@ -218,11 +220,11 @@ bool AccessControlProvider::isAccessToLocalComputerDenied() const
 bool AccessControlProvider::isMemberOfUserGroup( const QString &user,
 												 const QString &groupName ) const
 {
-	QRegExp groupNameRX( groupName );
+	const QRegularExpression groupNameRX( groupName );
 
 	if( groupNameRX.isValid() )
 	{
-		return m_userGroupsBackend->groupsOfUser( user, m_queryDomainGroups ).indexOf( QRegExp( groupName ) ) >= 0;
+		return m_userGroupsBackend->groupsOfUser( user, m_queryDomainGroups ).indexOf( groupNameRX ) >= 0;
 	}
 
 	return m_userGroupsBackend->groupsOfUser( user, m_queryDomainGroups ).contains( groupName );
@@ -230,10 +232,9 @@ bool AccessControlProvider::isMemberOfUserGroup( const QString &user,
 
 
 
-bool AccessControlProvider::isLocatedInRoom( const QString &computer, const QString &roomName ) const
+bool AccessControlProvider::isLocatedIn( const QString &computer, const QString &locationName ) const
 {
-
-	return roomsOfComputer( computer ).contains( roomName );
+	return locationsOfComputer( computer ).contains( locationName );
 }
 
 
@@ -248,12 +249,13 @@ bool AccessControlProvider::hasGroupsInCommon( const QString &userOne, const QSt
 
 
 
-bool AccessControlProvider::isLocatedInSameRoom( const QString &computerOne, const QString &computerTwo ) const
+bool AccessControlProvider::haveSameLocations( const QString &computerOne, const QString &computerTwo ) const
 {
-	const auto computerOneRooms = roomsOfComputer( computerOne );
-	const auto computerTwoRooms = roomsOfComputer( computerTwo );
+	const auto computerOneLocations = locationsOfComputer( computerOne );
+	const auto computerTwoLocations = locationsOfComputer( computerTwo );
 
-	return intersects( computerOneRooms.toSet(), computerTwoRooms.toSet() );
+	return computerOneLocations.isEmpty() == false &&
+			computerOneLocations == computerTwoLocations;
 }
 
 
@@ -321,7 +323,7 @@ bool AccessControlProvider::matchConditions( const AccessControlRule &rule,
 		const auto group = rule.argument( condition );
 
 		if( user.isEmpty() || group.isEmpty() ||
-				isMemberOfUserGroup( user, group ) != matchResult )
+			isMemberOfUserGroup( user, group ) != matchResult )
 		{
 			return false;
 		}
@@ -334,37 +336,37 @@ bool AccessControlProvider::matchConditions( const AccessControlRule &rule,
 		hasConditions = true;
 
 		if( accessingUser.isEmpty() || localUser.isEmpty() ||
-				hasGroupsInCommon( accessingUser, localUser ) != matchResult )
+			hasGroupsInCommon( accessingUser, localUser ) != matchResult )
 		{
 			return false;
 		}
 	}
 
-	condition = AccessControlRule::ConditionLocatedInRoom;
+	condition = AccessControlRule::ConditionLocatedIn;
 
 	if( rule.isConditionEnabled( condition ) )
 	{
 		hasConditions = true;
 
 		const auto computer = lookupSubject( rule.subject( condition ), QString(), accessingComputer, QString(), localComputer );
-		const auto room = rule.argument( condition );
+		const auto location = rule.argument( condition );
 
-		if( computer.isEmpty() || room.isEmpty() ||
-				isLocatedInRoom( computer, room ) != matchResult )
+		if( computer.isEmpty() || location.isEmpty() ||
+			isLocatedIn( computer, location ) != matchResult )
 		{
 			return false;
 		}
 	}
 
 
-	condition = AccessControlRule::ConditionLocatedInSameRoom;
+	condition = AccessControlRule::ConditionSameLocation;
 
 	if( rule.isConditionEnabled( condition ) )
 	{
 		hasConditions = true;
 
 		if( accessingComputer.isEmpty() || localComputer.isEmpty() ||
-				isLocatedInSameRoom( accessingComputer, localComputer ) != matchResult )
+			haveSameLocations( accessingComputer, localComputer ) != matchResult )
 		{
 			return false;
 		}

@@ -46,24 +46,24 @@ class VEYON_CORE_EXPORT VncConnection : public QThread
 {
 	Q_OBJECT
 public:
-	enum QualityLevels
+	enum class Quality
 	{
-		ThumbnailQuality,
-		ScreenshotQuality,
-		RemoteControlQuality,
-		DefaultQuality,
-		NumQualityLevels
+		Thumbnail,
+		Screenshot,
+		RemoteControl,
+		Default
 	} ;
 
-	typedef enum FramebufferStates
+	enum class FramebufferState
 	{
-		FramebufferInvalid,
-		FramebufferInitialized,
-		FramebufferValid
-	} FramebufferState;
+		Invalid,
+		Initialized,
+		Valid
+	} ;
 
-	enum States
+	enum class State
 	{
+		None,
 		Disconnected,
 		Connecting,
 		HostOffline,
@@ -72,7 +72,7 @@ public:
 		ConnectionFailed,
 		Connected
 	} ;
-	typedef States State;
+	Q_ENUM(State)
 
 	explicit VncConnection( QObject *parent = nullptr );
 	~VncConnection() override;
@@ -95,7 +95,7 @@ public:
 
 	bool isConnected() const
 	{
-		return state() == Connected && isRunning();
+		return state() == State::Connected && isRunning();
 	}
 
 	const QString& host() const
@@ -103,12 +103,12 @@ public:
 		return m_host;
 	}
 
-	void setQuality( QualityLevels qualityLevel )
+	void setQuality( Quality quality )
 	{
-		m_quality = qualityLevel;
+		m_quality = quality ;
 	}
 
-	QualityLevels quality() const
+	Quality quality() const
 	{
 		return m_quality;
 	}
@@ -126,7 +126,7 @@ public:
 	/** \brief Returns whether framebuffer data is valid, i.e. at least one full FB update received */
 	bool hasValidFrameBuffer() const
 	{
-		return m_framebufferState == FramebufferValid;
+		return m_framebufferState == FramebufferState::Valid;
 	}
 
 	void setScaledSize( QSize s )
@@ -134,7 +134,7 @@ public:
 		if( m_scaledSize != s )
 		{
 			m_scaledSize = s;
-			setControlFlag( ScaledScreenNeedsUpdate, true );
+			setControlFlag( ControlFlag::ScaledScreenNeedsUpdate, true );
 		}
 	}
 
@@ -188,14 +188,12 @@ private:
 	static const int RfbSamplesPerPixel = 3;
 	static const int RfbBytesPerPixel = 4;
 
-	enum ControlFlag {
+	enum class ControlFlag {
 		ScaledScreenNeedsUpdate = 0x01,
 		ServerReachable = 0x02,
 		TerminateThread = 0x04,
 		RestartConnection = 0x08,
 	};
-
-	Q_DECLARE_FLAGS(ControlFlags, ControlFlag)
 
 	void establishConnection();
 	void handleConnection();
@@ -223,20 +221,19 @@ private:
 	static void framebufferCleanup( void* framebuffer );
 
 	// states and flags
-	volatile State m_state;
-	FramebufferState m_framebufferState;
-	ControlFlags m_controlFlags;
+	std::atomic<State> m_state;
+	std::atomic<FramebufferState> m_framebufferState;
+	QAtomicInt m_controlFlags;
 
 	// connection parameters and data
 	rfbClient* m_client;
-	QualityLevels m_quality;
+	Quality m_quality;
 	QString m_host;
 	int m_port;
 
 	// thread and timing control
 	QMutex m_globalMutex;
 	QMutex m_eventQueueMutex;
-	QMutex m_controlFlagMutex;
 	QWaitCondition m_updateIntervalSleeper;
 	int m_framebufferUpdateInterval;
 

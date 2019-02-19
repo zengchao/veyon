@@ -25,6 +25,7 @@
 #pragma once
 
 #include "CommandLinePluginInterface.h"
+#include "CommandLineIO.h"
 #include "ConfigurationPagePluginInterface.h"
 #include "BuiltinDirectoryConfiguration.h"
 #include "NetworkObject.h"
@@ -36,7 +37,8 @@ class BuiltinDirectoryPlugin : public QObject,
 		PluginInterface,
 		NetworkObjectDirectoryPluginInterface,
 		ConfigurationPagePluginInterface,
-		CommandLinePluginInterface
+		CommandLinePluginInterface,
+		CommandLineIO
 {
 	Q_OBJECT
 	Q_PLUGIN_METADATA(IID "io.veyon.Veyon.Plugins.BuiltinDirectory")
@@ -46,7 +48,7 @@ class BuiltinDirectoryPlugin : public QObject,
 				 CommandLinePluginInterface)
 public:
 	BuiltinDirectoryPlugin( QObject* paren = nullptr );
-	~BuiltinDirectoryPlugin() = default;
+	~BuiltinDirectoryPlugin() override = default;
 
 	Plugin::Uid uid() const override
 	{
@@ -87,7 +89,7 @@ public:
 
 	QString directoryName() const override
 	{
-		return tr( "Builtin (computers and rooms in local configuration)" );
+		return tr( "Builtin (computers and locations in local configuration)" );
 	}
 
 	NetworkObjectDirectory* createNetworkObjectDirectory( QObject* parent ) override;
@@ -126,19 +128,19 @@ private:
 
 	CommandLinePluginInterface::RunResult saveConfiguration();
 
-	bool importFile( QFile& inputFile, const QString& regExWithVariables, const QString& room );
-	bool exportFile( QFile& outputFile, const QString& formatString, const QString& room );
+	bool importFile( QFile& inputFile, const QString& regExWithVariables, const QString& location );
+	bool exportFile( QFile& outputFile, const QString& formatString, const QString& location );
 
 	NetworkObject findNetworkObject( const QString& uidOrName ) const;
 
-	static NetworkObject toNetworkObject( const QString& line, const QString& regExWithVariables, QString& room );
-	static QString toFormattedString( const NetworkObject& networkObject, const QString& formatString, const QString& room );
+	static NetworkObject toNetworkObject( const QString& line, const QString& regExWithVariables, QString& location );
+	static QString toFormattedString( const NetworkObject& networkObject, const QString& formatString, const QString& location );
 
-	static QStringList fileImportVariables();
+	static QStringList importExportPlaceholders();
 
-	static QString typeNameRoom()
+	static QString typeNameLocation()
 	{
-		return tr( "Room" );
+		return tr( "Location" );
 	}
 
 	static QString typeNameComputer()
@@ -149,6 +151,61 @@ private:
 	static QString typeNameRoot()
 	{
 		return tr( "Root" );
+	}
+
+	static QString importCommand()
+	{
+		return QStringLiteral("import");
+	}
+
+	static QString exportCommand()
+	{
+		return QStringLiteral("export");
+	}
+
+	static QString addCommand()
+	{
+		return QStringLiteral("add");
+	}
+
+	static QString removeCommand()
+	{
+		return QStringLiteral("remove");
+	}
+
+	static QString locationArgument()
+	{
+		return QStringLiteral("location");
+	}
+
+	static QString formatArgument()
+	{
+		return QStringLiteral("format");
+	}
+
+	static QString regexArgument()
+	{
+		return QStringLiteral("regex");
+	}
+
+	static QString typeLocation()
+	{
+		return QStringLiteral("location");
+	}
+
+	static QString typeComputer()
+	{
+		return QStringLiteral("computer");
+	}
+
+	static QString exampleRoom()
+	{
+		return tr( "\"Room 01\"" );
+	}
+
+	static QString exampleComputer()
+	{
+		return tr( "\"Computer 01\"" );
 	}
 
 	BuiltinDirectoryConfiguration m_configuration;
