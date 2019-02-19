@@ -65,4 +65,6 @@ private:
 	Ui::MainWindow *ui;
 	bool m_configChanged;
 
+    void saveSettingsToDefaultFile(QString& filename);
+
 } ;

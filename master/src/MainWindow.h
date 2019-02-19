@@ -54,6 +54,7 @@ public:
 		return m_master;
 	}
 
+    void getNodeList();
 
 protected:
 	void closeEvent( QCloseEvent* event ) override;

@@ -86,7 +86,7 @@ MainWindow::MainWindow( VeyonMaster &masterCore, QWidget* parent ) :
 
 	ui->centralLayout->addWidget( splitter );
 
-	m_computerManagementView = new ComputerManagementView( m_master.computerManager(), splitter );
+	m_computerManagementView = new ComputerManagementView( m_master.computerManager(), splitter );    
 	m_screenshotManagementView = new ScreenshotManagementView( splitter );
 
 	splitter->addWidget( m_computerManagementView );
@@ -168,7 +168,19 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 
-
+void MainWindow::getNodeList()
+{
+    QString fileName = QStringLiteral("");
+    if( fileName.isEmpty() == false )
+    {
+        if( m_master.computerManager().saveComputerAndUsersList( fileName ) == false )
+        {
+            QMessageBox::critical( this, tr( "File error"),
+                                   tr( "Could not write the computer and users list to %1! "
+                                       "Please check the file access permissions." ).arg( fileName ) );
+        }
+    }
+}
 
 bool MainWindow::initAuthentication()
 {
