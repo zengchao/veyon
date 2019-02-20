@@ -240,7 +240,7 @@ void ScreenRecordFeaturePlugin::startRecording()
 
         const auto dir = VeyonCore::filesystem().expandPath(VeyonCore::config().screenRecordingDirectory());
 
-        QMessageBox::information(NULL, tr("Hello"), dir, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+        //QMessageBox::information(NULL, tr("Hello"), dir, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
 
         qDebug() << dir;
@@ -260,10 +260,11 @@ void ScreenRecordFeaturePlugin::startRecording()
                             QDate( QDate::currentDate() ).toString( Qt::ISODate ),
                             QTime( QTime::currentTime() ).toString( Qt::ISODate ) ).
                         replace( QLatin1Char(':'), QLatin1Char('-') );
-        QMessageBox::information(NULL, tr("Hello"), m_fileName, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+        //QMessageBox::information(NULL, tr("Hello"), m_fileName, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
-        this->outputFile = dir + QDir::separator() + m_fileName;
-        //this->outputFile = QStringLiteral("c:\\output.avi");
+        //this->outputFile = dir + QDir::separator() + m_fileName;
+        this->outputFile = QStringLiteral("c:\\recording\\")+m_fileName;
+
         //machine_name + yyyymmddhhmmss
         //default file path
         //custom ffmpeg parameters
@@ -271,7 +272,7 @@ void ScreenRecordFeaturePlugin::startRecording()
                   << QStringLiteral("-r") << QStringLiteral("15") << QStringLiteral("-b:v") << QStringLiteral("200k")
                   << QStringLiteral("-q:v") << QStringLiteral("0.01")
                   << this->outputFile;
-        QMessageBox::information(NULL, tr("Hello"), this->outputFile, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+        //QMessageBox::information(NULL, tr("Hello"), this->outputFile, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
         qDebug() << arguments;
         if (QFile::exists(this->outputFile))
