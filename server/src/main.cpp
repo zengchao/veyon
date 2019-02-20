@@ -26,7 +26,25 @@
 
 #include "ComputerControlServer.h"
 #include "VeyonConfiguration.h"
+#include "Filesystem.h"
 
+/*int main(int argc,char **argv)
+{
+    const auto dir = VeyonCore::filesystem().expandPath(VeyonCore::config().screenRecordingDirectory());
+    qDebug() << dir;
+    if( VeyonCore::filesystem().ensurePathExists( dir ) == false )
+    {
+        return 0;
+    }
+    const auto m_fileName =  QString( QStringLiteral( "_%1_%2.avi" ) ).arg(
+                        QDate( QDate::currentDate() ).toString( Qt::ISODate ),
+                        QTime( QTime::currentTime() ).toString( Qt::ISODate ) ).
+                    replace( QLatin1Char(':'), QLatin1Char('-') );
+
+    qDebug() << dir + QDir::separator() + m_fileName;
+
+    return 1;
+}*/
 
 int main( int argc, char **argv )
 {
