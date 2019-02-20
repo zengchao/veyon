@@ -42,16 +42,16 @@
 #include "ComputerControlInterface.h"
 
 ScreenRecordFeaturePlugin::ScreenRecordFeaturePlugin( QObject* parent ) :
-	QObject( parent ),
-	m_screenRecordFeature( Feature::Mode | Feature::AllComponents,
+    QObject( parent ),
+    m_screenRecordFeature( Feature::Mode | Feature::AllComponents,
                          Feature::Uid( "3b48aa3b-62aa-4260-a959-a69856b11385" ),
-						 Feature::Uid(),
+                         Feature::Uid(),
                          tr( "Start Recording" ), tr( "Stop Recording" ),
-						 tr( "To reclaim all user's full attention you can lock "
-							 "their computers using this button. "
-							 "In this mode all input devices are locked and "
-							 "the screens are blacked." ),
-						 QStringLiteral(":/screenrecord/system-lock-screen.png") ),
+                         tr( "To reclaim all user's full attention you can lock "
+                             "their computers using this button. "
+                             "In this mode all input devices are locked and "
+                             "the screens are blacked." ),
+                         QStringLiteral(":/screenrecord/system-lock-screen.png") ),
     m_features( { m_screenRecordFeature } ),
     mTranscodingProcess(nullptr)
 {
@@ -80,12 +80,12 @@ void ScreenRecordFeaturePlugin::endRecordingAndClose()
 }
 
 bool ScreenRecordFeaturePlugin::startFeature( VeyonMasterInterface& master, const Feature& feature,
-											const ComputerControlInterfaceList& computerControlInterfaces )
+                                            const ComputerControlInterfaceList& computerControlInterfaces )
 {
-	Q_UNUSED(master);
+    Q_UNUSED(master);
 
-	if( feature == m_screenRecordFeature )
-	{
+    if( feature == m_screenRecordFeature )
+    {
         const auto dir = VeyonCore::filesystem().expandPath(VeyonCore::config().screenRecordingDirectory());
         qDebug() << dir;
         if( VeyonCore::filesystem().ensurePathExists( dir ) == false )
@@ -99,77 +99,77 @@ bool ScreenRecordFeaturePlugin::startFeature( VeyonMasterInterface& master, cons
 
         qDebug() << dir + QDir::separator() + m_fileName;
 
-		return sendFeatureMessage( FeatureMessage( m_screenRecordFeature.uid(), StartRecordCommand ),
-								   computerControlInterfaces );
-	}
+        return sendFeatureMessage( FeatureMessage( m_screenRecordFeature.uid(), StartRecordCommand ),
+                                   computerControlInterfaces );
+    }
 
-	return false;
+    return false;
 }
 
 
 
 bool ScreenRecordFeaturePlugin::stopFeature( VeyonMasterInterface& master, const Feature& feature,
-										   const ComputerControlInterfaceList& computerControlInterfaces )
+                                           const ComputerControlInterfaceList& computerControlInterfaces )
 {
-	Q_UNUSED(master);
+    Q_UNUSED(master);
 
-	if( feature == m_screenRecordFeature )
-	{
-		return sendFeatureMessage( FeatureMessage( m_screenRecordFeature.uid(), StopRecordCommand ),
-								   computerControlInterfaces );
-	}
+    if( feature == m_screenRecordFeature )
+    {
+        return sendFeatureMessage( FeatureMessage( m_screenRecordFeature.uid(), StopRecordCommand ),
+                                   computerControlInterfaces );
+    }
 
-	return false;
+    return false;
 }
 
 
 
 bool ScreenRecordFeaturePlugin::handleFeatureMessage( VeyonMasterInterface& master, const FeatureMessage& message,
-													ComputerControlInterface::Pointer computerControlInterface )
+                                                    ComputerControlInterface::Pointer computerControlInterface )
 {
-	Q_UNUSED(master);
-	Q_UNUSED(message);
-	Q_UNUSED(computerControlInterface);
+    Q_UNUSED(master);
+    Q_UNUSED(message);
+    Q_UNUSED(computerControlInterface);
 
-	return false;
+    return false;
 }
 
 
 
 bool ScreenRecordFeaturePlugin::handleFeatureMessage( VeyonServerInterface& server,
-													const MessageContext& messageContext,
-													const FeatureMessage& message )
+                                                    const MessageContext& messageContext,
+                                                    const FeatureMessage& message )
 {
-	Q_UNUSED(messageContext)
+    Q_UNUSED(messageContext)
 
-	if( m_screenRecordFeature.uid() == message.featureUid() )
-	{
-		if( server.featureWorkerManager().isWorkerRunning( m_screenRecordFeature ) == false &&
-				message.command() != StopRecordCommand )
-		{
-			server.featureWorkerManager().startWorker( m_screenRecordFeature, FeatureWorkerManager::ManagedSystemProcess );
-		}
+    if( m_screenRecordFeature.uid() == message.featureUid() )
+    {
+        if( server.featureWorkerManager().isWorkerRunning( m_screenRecordFeature ) == false &&
+                message.command() != StopRecordCommand )
+        {
+            server.featureWorkerManager().startWorker( m_screenRecordFeature, FeatureWorkerManager::ManagedSystemProcess );
+        }
 
-		// forward message to worker
-		server.featureWorkerManager().sendMessage( message );
+        // forward message to worker
+        server.featureWorkerManager().sendMessage( message );
 
-		return true;
-	}
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 
 
 bool ScreenRecordFeaturePlugin::handleFeatureMessage( VeyonWorkerInterface& worker, const FeatureMessage& message )
 {
-	Q_UNUSED(worker);
+    Q_UNUSED(worker);
 
-	if( m_screenRecordFeature.uid() == message.featureUid() )
-	{
-		switch( message.command() )
-		{
-		case StartRecordCommand:
+    if( m_screenRecordFeature.uid() == message.featureUid() )
+    {
+        switch( message.command() )
+        {
+        case StartRecordCommand:
             if( mTranscodingProcess == nullptr )
             {
                 mTranscodingProcess = new QProcess(this);
@@ -181,9 +181,9 @@ bool ScreenRecordFeaturePlugin::handleFeatureMessage( VeyonWorkerInterface& work
                 this->startRecording();
             }
 
-			return true;
+            return true;
 
-		case StopRecordCommand:
+        case StopRecordCommand:
 
             this->stopRecording();
 
@@ -191,14 +191,14 @@ bool ScreenRecordFeaturePlugin::handleFeatureMessage( VeyonWorkerInterface& work
             mTranscodingProcess = nullptr;
             QCoreApplication::quit();
 
-			return true;
+            return true;
 
-		default:
-			break;
-		}
-	}
+        default:
+            break;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 void ScreenRecordFeaturePlugin::processStarted()
@@ -263,8 +263,7 @@ void ScreenRecordFeaturePlugin::startRecording()
         //QMessageBox::information(NULL, tr("Hello"), m_fileName, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
         //this->outputFile = dir + QDir::separator() + m_fileName;
-        this->outputFile = QStringLiteral("c:\\recording\\")+m_fileName;
-
+        this->outputFile = QStringLiteral("c:\\record\\output.avi");
         //machine_name + yyyymmddhhmmss
         //default file path
         //custom ffmpeg parameters
