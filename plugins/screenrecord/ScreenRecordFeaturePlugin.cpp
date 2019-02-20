@@ -256,14 +256,14 @@ void ScreenRecordFeaturePlugin::startRecording()
             return;
         }
 
-        QString m_fileName =  QString( QStringLiteral( "_%1_%2.avi" ) ).arg(
+        QString m_fileName =  QString( QStringLiteral( "_%1_%2.mp4" ) ).arg(
                             QDate( QDate::currentDate() ).toString( Qt::ISODate ),
                             QTime( QTime::currentTime() ).toString( Qt::ISODate ) ).
                         replace( QLatin1Char(':'), QLatin1Char('-') );
         //QMessageBox::information(NULL, tr("Hello"), m_fileName, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
         //this->outputFile = dir + QDir::separator() + m_fileName;
-        this->outputFile = QStringLiteral("c:\\record\\output.avi");
+        this->outputFile = QStringLiteral("c:\\record\\")+m_fileName;
         //machine_name + yyyymmddhhmmss
         //default file path
         //custom ffmpeg parameters
