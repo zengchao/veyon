@@ -239,6 +239,10 @@ void ScreenRecordFeaturePlugin::startRecording()
         QStringList arguments;
 
         const auto dir = VeyonCore::filesystem().expandPath(VeyonCore::config().screenRecordingDirectory());
+
+        QMessageBox::information(NULL, tr("Hello"), dir, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+
+
         qDebug() << dir;
         if( VeyonCore::filesystem().ensurePathExists( dir ) == false )
         {
@@ -251,10 +255,12 @@ void ScreenRecordFeaturePlugin::startRecording()
 
             return;
         }
+
         QString m_fileName =  QString( QStringLiteral( "_%1_%2.avi" ) ).arg(
                             QDate( QDate::currentDate() ).toString( Qt::ISODate ),
                             QTime( QTime::currentTime() ).toString( Qt::ISODate ) ).
                         replace( QLatin1Char(':'), QLatin1Char('-') );
+        QMessageBox::information(NULL, tr("Hello"), m_fileName, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
         this->outputFile = dir + QDir::separator() + m_fileName;
         //this->outputFile = QStringLiteral("c:\\output.avi");
@@ -265,6 +271,7 @@ void ScreenRecordFeaturePlugin::startRecording()
                   << QStringLiteral("-r") << QStringLiteral("15") << QStringLiteral("-b:v") << QStringLiteral("200k")
                   << QStringLiteral("-q:v") << QStringLiteral("0.01")
                   << this->outputFile;
+        QMessageBox::information(NULL, tr("Hello"), this->outputFile, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
         qDebug() << arguments;
         if (QFile::exists(this->outputFile))
