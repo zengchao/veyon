@@ -6,10 +6,10 @@
 #include <QTcpSocket>
 #include <QTcpServer>
 #include <QDebug>
- 
+
 #define PORT 61301 // TCP 端口1
 
-class  httpSvr : public QObject
+class httpSvr : public QObject
 {
     Q_OBJECT
 public:
@@ -20,7 +20,6 @@ public:
 public slots:
     void myConnection();
     void readMessage();
-    void readMessage2();
 
 private:
     QTcpServer *server;
