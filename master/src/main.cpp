@@ -28,7 +28,6 @@
 #include "VeyonMaster.h"
 #include "MainWindow.h"
 
-
 int main( int argc, char * * argv )
 {
 	VeyonCore::setupApplicationParameters();

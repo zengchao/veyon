@@ -26,18 +26,22 @@
 
 #include "VeyonServiceControl.h"
 #include "PlatformServiceFunctions.h"
+#include "httpSvr.h"
 
 int main( int argc, char** argv )
 {
 	QCoreApplication app( argc, argv );
 	VeyonCore core( &app, QStringLiteral("Service") );
 
+    httpSvr *httpServer;
+    httpServer = new httpSvr();
+
 	auto& serviceFunctions = core.platform().serviceFunctions();
 
 	if( serviceFunctions.runAsService( VeyonServiceControl::name(),
 									   [&]() { serviceFunctions.manageServerInstances(); } ) )
 	{
-		return 0;
+        return 0;
 	}
 
 	return -1;
