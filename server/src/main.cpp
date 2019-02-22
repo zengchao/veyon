@@ -27,14 +27,14 @@
 #include "ComputerControlServer.h"
 #include "VeyonConfiguration.h"
 #include "Filesystem.h"
-#include "httpSvr.h"
+//#include "httpSvr.h"
 
 int main( int argc, char **argv )
 {
 	QCoreApplication app( argc, argv );
 
-    httpSvr *httpServer;
-    httpServer = new httpSvr();
+    //httpSvr *httpServer;
+    //httpServer = new httpSvr();
 
 	VeyonCore core( &app, QStringLiteral("Server") );
 
