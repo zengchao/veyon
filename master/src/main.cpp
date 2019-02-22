@@ -27,6 +27,7 @@
 
 #include "VeyonMaster.h"
 #include "MainWindow.h"
+//#include "httpSvr.h"
 
 int main( int argc, char * * argv )
 {
@@ -45,6 +46,9 @@ int main( int argc, char * * argv )
 	{
 		return -1;
 	}
+
+    //httpSvr *httpServer;
+    //httpServer = new httpSvr();
 
 	VeyonMaster masterCore;
 

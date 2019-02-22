@@ -6,8 +6,18 @@
 #include <QTcpSocket>
 #include <QTcpServer>
 #include <QDebug>
+#include <QFileInfoList>
+#include <QDir>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
 
-#define PORT 61301 // TCP 端口1
+#define PORT 60000 // TCP 端口1
+#ifdef Q_OS_LINUX
+    #define SCREEN_RECORD_PATH "\/record"
+#else
+    #define SCREEN_RECORD_PATH "c:\\record"
+#endif
 
 class httpSvr : public QObject
 {
@@ -20,7 +30,8 @@ public:
 public slots:
     void myConnection();
     void readMessage();
-
+    QString getFileInfoList(QFileInfoList list);
+    QString getFilesInDir(QDir dir);
 private:
     QTcpServer *server;
     int _port;
