@@ -22,26 +22,7 @@ int httpSvr::port() {
 
 void httpSvr::readMessage()
 {
-    /*
-    QByteArray barr = "Hello";
-    QString lens(QString::number( barr.length()));
-    socket->write("HTTP/1.1 200 OK\r\n");
-    socket->write("Content-Type: text/html\r\n");
-    socket->write("Accept-Ranges: bytes\r\n");
-    QString sLen(QStringLiteral("Content-Length: ")+lens+QStringLiteral("\r\n\r\n"));
-    socket->write(sLen.toLatin1());
-    socket->write(barr);
-    socket->flush();
-    connect(socket, SIGNAL(disconnected()),socket, SLOT(deleteLater()));
-    socket->disconnectFromHost();
-    */
-        /*
-        QString readmsg = QString::fromUtf8(socket->readAll());
-
-        // 通过URL取文件路径，具体看下面说明
-        */
-        //getURL.trimmed();
-        //URL解码
+     QByteArray barr;
 
      QString readmsg = QString::fromUtf8(socket->readAll());
      QStringList msgList = readmsg.split(QStringLiteral("\n"));
@@ -54,40 +35,35 @@ void httpSvr::readMessage()
      if (paras.compare(QString::fromUtf8("client"))==0)
      {
         QByteArray ba;
-        QString getPath = QStringLiteral("\/root\/.veyon\/ScreenRecording\/host.json");
+        QString getPath;
+#ifdef Q_OS_LINUX
+
+        getPath = QStringLiteral("\/record\/host.json");
+#else
+        getPath = QStringLiteral("c:\\record\\host.json");
+#endif
+
         QFile f(getPath);
         if(!f.open(QIODevice::ReadOnly | QIODevice::Unbuffered))  {
-            socket->disconnectFromHost();
-            return;
+            barr = "file not found";
+        }else{
+            barr = f.readAll();
         }
-        QByteArray barr = f.readAll();
         f.close();
 
-        // 模拟http协议
-        QString lens(QString::number( barr.length()));
-        socket->write("HTTP/1.1 200 OK\r\n");
-        socket->write("Content-Type: text/html\r\n");
-        socket->write("Accept-Ranges: bytes\r\n");
-        QString sLen(QStringLiteral("Content-Length: ")+lens+QStringLiteral("\r\n\r\n"));
-        socket->write(sLen.toLatin1());
-        socket->write(barr);
-        socket->flush();
-        connect(socket, SIGNAL(disconnected()),socket, SLOT(deleteLater()));
-        socket->disconnectFromHost();
      }else{
-         // 模拟http协议
-         QByteArray barr = "invalid parameters";
-         QString lens(QString::number( barr.length()));
-         socket->write("HTTP/1.1 200 OK\r\n");
-         socket->write("Content-Type: text/html\r\n");
-         socket->write("Accept-Ranges: bytes\r\n");
-         QString sLen(QStringLiteral("Content-Length: ")+lens+QStringLiteral("\r\n\r\n"));
-         socket->write(sLen.toLatin1());
-         socket->write(barr);
-         socket->flush();
-         connect(socket, SIGNAL(disconnected()),socket, SLOT(deleteLater()));
-         socket->disconnectFromHost();
+        barr = "invalid parameters";
      }
+     QString lens(QString::number( barr.length()));
+     socket->write("HTTP/1.1 200 OK\r\n");
+     socket->write("Content-Type: text/html\r\n");
+     socket->write("Accept-Ranges: bytes\r\n");
+     QString sLen(QStringLiteral("Content-Length: ")+lens+QStringLiteral("\r\n\r\n"));
+     socket->write(sLen.toLatin1());
+     socket->write(barr);
+     socket->flush();
+     connect(socket, SIGNAL(disconnected()),socket, SLOT(deleteLater()));
+     socket->disconnectFromHost();
 }
 
 void httpSvr::myConnection()

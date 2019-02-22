@@ -303,10 +303,15 @@ bool MainWindow::applyConfiguration()
 							   configurationManager.errorString() );
 		return false;
 	}
+    QString confFilePath;
+
 #ifdef Q_OS_LINUX
-	
+        confFilePath = QStringLiteral("\/record");
 #else
-    const auto confFilePath = QStringLiteral("c:\\record");  ;//VeyonCore::filesystem().expandPath(VeyonCore::config().screenRecordingDirectory());
+        confFilePath = QStringLiteral("c:\\record");
+#endif
+
+    //VeyonCore::filesystem().expandPath(VeyonCore::config().screenRecordingDirectory());
     if( VeyonCore::filesystem().ensurePathExists( confFilePath ) == false )
     {
         const auto msg = tr( "Could not take a screenRecording as directory %1 doesn't exist and couldn't be created." ).arg( confFilePath );
@@ -316,13 +321,14 @@ bool MainWindow::applyConfiguration()
             QMessageBox::critical( nullptr, tr( "ScreenRecording" ), msg );
         }
     }else{
-	    QString jsonFile = confFilePath+QDir::separator() + QStringLiteral("host.json");
+        QString jsonFile;
+#ifdef Q_OS_LINUX
+        jsonFile = confFilePath + QStringLiteral("\/") + QStringLiteral("host.json");
+#else
+        jsonFile = confFilePath + QStringLiteral("\\") + QStringLiteral("host.json");
+#endif
     	saveSettingsToDefaultFile(jsonFile);
     }
-	
-#endif
-
-
 	return true;
 }
 
