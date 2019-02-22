@@ -237,12 +237,14 @@ void ScreenRecordFeaturePlugin::startRecording()
         QString program = QStringLiteral("ffmpeg");
 
         QStringList arguments;
+        QString dir;
 
-        const auto dir = QStringLiteral("c:\\record");//VeyonCore::filesystem().expandPath(VeyonCore::config().screenRecordingDirectory());
-
-        //QMessageBox::information(NULL, tr("Hello"), dir, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
-
-
+#ifdef Q_OS_LINUX
+        dir = QStringLiteral("\/record");
+#else
+        dir = QStringLiteral("c:\\record");
+#endif
+        //VeyonCore::filesystem().expandPath(VeyonCore::config().screenRecordingDirectory());
         qDebug() << dir;
         if( VeyonCore::filesystem().ensurePathExists( dir ) == false )
         {
@@ -252,7 +254,6 @@ void ScreenRecordFeaturePlugin::startRecording()
             {
                 QMessageBox::critical( nullptr, tr( "ScreenRecording" ), msg );
             }
-
             return;
         }
 
@@ -260,18 +261,15 @@ void ScreenRecordFeaturePlugin::startRecording()
                             QDate( QDate::currentDate() ).toString( Qt::ISODate ),
                             QTime( QTime::currentTime() ).toString( Qt::ISODate ) ).
                         replace( QLatin1Char(':'), QLatin1Char('-') );
-        //QMessageBox::information(NULL, tr("Hello"), m_fileName, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
-
-        //this->outputFile = dir + QDir::separator() + m_fileName;
+#ifdef Q_OS_LINUX
+        this->outputFile = dir + QStringLiteral("\/") + m_fileName;
+#else
         this->outputFile = dir + QStringLiteral("\\") + m_fileName;
-        //machine_name + yyyymmddhhmmss
-        //default file path
-        //custom ffmpeg parameters
+#endif
         arguments << QStringLiteral("-f") << QStringLiteral("gdigrab") << QStringLiteral("-i") << QStringLiteral("desktop")
                   << QStringLiteral("-r") << QStringLiteral("15") << QStringLiteral("-b:v") << QStringLiteral("200k")
                   << QStringLiteral("-q:v") << QStringLiteral("0.01")
                   << this->outputFile;
-        //QMessageBox::information(NULL, tr("Hello"), this->outputFile, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
         qDebug() << arguments;
         if (QFile::exists(this->outputFile))
