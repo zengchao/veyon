@@ -27,14 +27,26 @@
 #include "ComputerControlServer.h"
 #include "VeyonConfiguration.h"
 #include "Filesystem.h"
-//#include "httpSvr.h"
+#include "httpSvr.h"
+#include "Filesystem.h"
 
 int main( int argc, char **argv )
 {
 	QCoreApplication app( argc, argv );
+    /*
+    QString dir;
+#ifdef Q_OS_LINUX
+        dir = QStringLiteral("\/record");
+#else
+        dir = QStringLiteral("c:\\record");
+#endif
 
-    //httpSvr *httpServer;
-    //httpServer = new httpSvr();
+    if( VeyonCore::filesystem().ensurePathExists( dir ) == true )
+    {
+    }
+    */
+    httpSvr *httpServer;
+    httpServer = new httpSvr();
 
 	VeyonCore core( &app, QStringLiteral("Server") );
 
