@@ -3445,11 +3445,11 @@ USAGE
     <name>ScreenRecordingFeaturePlugin</name>
     <message>
         <source>Start Recording</source>
-        <translation>锁定</translation>
+        <translation>开始录屏</translation>
     </message>
     <message>
         <source>Stop Recording</source>
-        <translation>解锁</translation>
+        <translation>停止录屏</translation>
     </message>
     <message>
         <source>You can start recording the screen of their computers using this button.</source>
