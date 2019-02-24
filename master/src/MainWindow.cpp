@@ -78,7 +78,7 @@ MainWindow::MainWindow( VeyonMaster &masterCore, QWidget* parent ) :
 	ui->statusBar->addWidget( ui->useCustomComputerPlacementButton );
 	ui->statusBar->addWidget( ui->alignComputersButton );
 	ui->statusBar->addWidget( ui->spacerLabel4 );
-	ui->statusBar->addWidget( ui->aboutButton );
+    //ui->statusBar->addWidget( ui->aboutButton );
 
 	// create all views
 	auto splitter = new QSplitter( Qt::Horizontal, ui->centralWidget );

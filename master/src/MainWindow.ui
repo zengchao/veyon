@@ -149,7 +149,7 @@
         <string/>
        </property>
       </widget>
-      <widget class="QToolButton" name="aboutButton">
+      <!--widget class="QToolButton" name="aboutButton">
        <property name="geometry">
         <rect>
          <x>1230</x>
@@ -168,7 +168,7 @@
         <iconset resource="../../core/resources/core.qrc">
          <normaloff>:/core/help-about.png</normaloff>:/core/help-about.png</iconset>
        </property>
-      </widget>
+      </widget-->
       <widget class="QLabel" name="spacerLabel3">
        <property name="geometry">
         <rect>
