@@ -139,17 +139,17 @@
        <item row="5" column="1">
         <widget class="QLabel" name="label_4">
          <property name="text">
-          <string notr="true">&lt;a href=&quot;https://veyon.io&quot;&gt;https://veyon.io&lt;/a&gt;</string>
+          <string notr="true"></string>
          </property>
          <property name="openExternalLinks">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
         </widget>
        </item>
        <item row="3" column="0" colspan="2">
         <widget class="QLabel" name="label_8">
          <property name="text">
-          <string notr="true">Copyright © 2004-2019 Tobias Junghans / Veyon Solutions</string>
+          <string notr="true">Copyright © 2019</string>
          </property>
         </widget>
        </item>
