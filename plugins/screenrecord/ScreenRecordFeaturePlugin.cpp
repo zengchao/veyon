@@ -46,8 +46,8 @@ ScreenRecordFeaturePlugin::ScreenRecordFeaturePlugin( QObject* parent ) :
     m_screenRecordFeature( Feature::Mode | Feature::AllComponents,
                          Feature::Uid( "3b48aa3b-62aa-4260-a959-a69856b11385" ),
                          Feature::Uid(),
-                         tr( "Start Recording" ), tr( "Stop Recording" ),
-                         tr( "You can start recording the screen of their computers using this button." ),
+                         tr( "开始录屏" ), tr( "结束录屏" ),
+                         tr( "点击本按钮开始录制被控端的电脑屏幕，再次点击它会停止视频录制并保存文件到被控端硬盘上." ),
                          QStringLiteral(":/screenrecord/system-lock-screen.png") ),
     m_features( { m_screenRecordFeature } ),
     mTranscodingProcess(nullptr)
