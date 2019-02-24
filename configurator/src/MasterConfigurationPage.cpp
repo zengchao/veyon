@@ -47,7 +47,7 @@ MasterConfigurationPage::MasterConfigurationPage() :
 
 	CONNECT_BUTTON_SLOT( openUserConfigurationDirectory );
 	CONNECT_BUTTON_SLOT( openScreenshotDirectory );
-    CONNECT_BUTTON_SLOT( openScreenRecordingDirectory);
+    //CONNECT_BUTTON_SLOT( openScreenRecordingDirectory);
 	populateFeatureComboBox();
 }
 
@@ -98,12 +98,12 @@ void MasterConfigurationPage::openScreenshotDirectory()
 	FileSystemBrowser( FileSystemBrowser::ExistingDirectory ).exec( ui->screenshotDirectory );
 }
 
-
+/*
 void MasterConfigurationPage::openScreenRecordingDirectory()
 {
     FileSystemBrowser( FileSystemBrowser::ExistingDirectory ).exec( ui->screenRecordingDirectory );
 }
-
+*/
 
 
 void MasterConfigurationPage::enableFeature()

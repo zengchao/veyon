@@ -47,7 +47,7 @@ public:
 private slots:
 	void openUserConfigurationDirectory();
 	void openScreenshotDirectory();
-    void openScreenRecordingDirectory();
+    //void openScreenRecordingDirectory();
 	void enableFeature();
 	void disableFeature();
 

@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>312</width>
+    <height>168</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Veyon Configurator</string>
   </property>
@@ -124,6 +132,14 @@
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>312</width>
+     <height>25</height>
+    </rect>
+   </property>
    <widget class="QMenu" name="menu_File">
     <property name="title">
      <string>&amp;File</string>
@@ -135,7 +151,10 @@
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
-   <widget class="QMenu" name="menu_Help">
+   <!--widget class="QMenu" name="menu_Help">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="title">
      <string>&amp;Help</string>
     </property>
@@ -143,15 +162,18 @@
     <addaction name="actionAboutQt"/>
    </widget>
    <widget class="QMenu" name="menu_View">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="title">
      <string>&amp;View</string>
     </property>
     <addaction name="viewModeStandard"/>
     <addaction name="viewModeAdvanced"/>
-   </widget>
+   </widget-->
    <addaction name="menu_File"/>
-   <addaction name="menu_View"/>
-   <addaction name="menu_Help"/>
+   <!--addaction name="menu_View"/>
+   <addaction name="menu_Help"/-->
   </widget>
   <action name="actionQuit">
    <property name="text">
@@ -196,10 +218,16 @@
    <property name="text">
     <string>About Veyon</string>
    </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionAboutQt">
    <property name="text">
     <string>About Qt</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionResetConfiguration">
@@ -218,6 +246,9 @@
    <property name="text">
     <string>&amp;Standard</string>
    </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="viewModeAdvanced">
    <property name="checkable">
@@ -225,6 +256,9 @@
    </property>
    <property name="text">
     <string>&amp;Advanced</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
  </widget>

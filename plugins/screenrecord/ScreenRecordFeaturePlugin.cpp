@@ -86,19 +86,6 @@ bool ScreenRecordFeaturePlugin::startFeature( VeyonMasterInterface& master, cons
 
     if( feature == m_screenRecordFeature )
     {
-        const auto dir = VeyonCore::filesystem().expandPath(VeyonCore::config().screenRecordingDirectory());
-        qDebug() << dir;
-        if( VeyonCore::filesystem().ensurePathExists( dir ) == false )
-        {
-            return 0;
-        }
-        const auto m_fileName =  QString( QStringLiteral( "_%1_%2.avi" ) ).arg(
-                            QDate( QDate::currentDate() ).toString( Qt::ISODate ),
-                            QTime( QTime::currentTime() ).toString( Qt::ISODate ) ).
-                        replace( QLatin1Char(':'), QLatin1Char('-') );
-
-        qDebug() << dir + QDir::separator() + m_fileName;
-
         return sendFeatureMessage( FeatureMessage( m_screenRecordFeature.uid(), StartRecordCommand ),
                                    computerControlInterfaces );
     }

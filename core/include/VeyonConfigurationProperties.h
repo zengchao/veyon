@@ -77,7 +77,7 @@
 #define FOREACH_VEYON_DIRECTORIES_CONFIG_PROPERTY(OP) \
 	OP( VeyonConfiguration, VeyonCore::config(), STRING, userConfigurationDirectory, setUserConfigurationDirectory, "UserConfiguration", "Directories", QDir::toNativeSeparators( QStringLiteral( "%APPDATA%/Config" ) ), Configuration::Object::StandardProperty )	\
 	OP( VeyonConfiguration, VeyonCore::config(), STRING, screenshotDirectory, setScreenshotDirectory, "Screenshots", "Directories", QDir::toNativeSeparators( QStringLiteral( "%APPDATA%/Screenshots" ) ), Configuration::Object::StandardProperty )	\
-	OP( VeyonConfiguration, VeyonCore::config(), STRING, screenRecordingDirectory, setScreenRecordingDirectory, "ScreenRecording", "Directories", QDir::toNativeSeparators( QStringLiteral( "%APPDATA%/ScreenRecording" ) ), Configuration::Object::StandardProperty )	\
+//	OP( VeyonConfiguration, VeyonCore::config(), STRING, screenRecordingDirectory, setScreenRecordingDirectory, "ScreenRecording", "Directories", QDir::toNativeSeparators( QStringLiteral( "%APPDATA%/ScreenRecording" ) ), Configuration::Object::StandardProperty )	\
 
 #define FOREACH_VEYON_MASTER_CONFIG_PROPERTY(OP) \
 	OP( VeyonConfiguration, VeyonCore::config(), INT, computerMonitoringUpdateInterval, setComputerMonitoringUpdateInterval, "ComputerMonitoringUpdateInterval", "Master", 1000, Configuration::Object::StandardProperty )	\
