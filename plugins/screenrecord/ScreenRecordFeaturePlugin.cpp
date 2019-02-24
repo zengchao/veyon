@@ -47,10 +47,7 @@ ScreenRecordFeaturePlugin::ScreenRecordFeaturePlugin( QObject* parent ) :
                          Feature::Uid( "3b48aa3b-62aa-4260-a959-a69856b11385" ),
                          Feature::Uid(),
                          tr( "Start Recording" ), tr( "Stop Recording" ),
-                         tr( "To reclaim all user's full attention you can lock "
-                             "their computers using this button. "
-                             "In this mode all input devices are locked and "
-                             "the screens are blacked." ),
+                         tr( "You can start recording the screen of their computers using this button." ),
                          QStringLiteral(":/screenrecord/system-lock-screen.png") ),
     m_features( { m_screenRecordFeature } ),
     mTranscodingProcess(nullptr)
