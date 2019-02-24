@@ -3330,6 +3330,21 @@ USAGE
     </message>
 </context>
 <context>
+    <name>ScreenRecordingFeaturePlugin</name>
+    <message>
+        <source>Start Recording</source>
+        <translation>开始录屏</translation>
+    </message>
+    <message>
+        <source>Stop Recording</source>
+        <translation>停止录屏</translation>
+    </message>
+    <message>
+        <source>You can start recording the screen of their computers using this button.</source>
+        <translation>您可以点击按钮开始录制被控端的电脑屏幕。</translation>
+    </message>
+</context>
+<context>
     <name>Screenshot</name>
     <message>
         <source>unknown</source>

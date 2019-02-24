@@ -3456,7 +3456,6 @@ USAGE
         <translation>您可以点击按钮开始录制被控端的电脑屏幕。</translation>
     </message>
 </context>
-
 <context>
     <name>Screenshot</name>
     <message>

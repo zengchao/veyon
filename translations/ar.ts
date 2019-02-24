@@ -3329,6 +3329,21 @@ USAGE
     </message>
 </context>
 <context>
+    <name>ScreenRecordingFeaturePlugin</name>
+    <message>
+        <source>Start Recording</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Stop Recording</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>You can start recording the screen of their computers using this button.</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
     <name>Screenshot</name>
     <message>
         <source>unknown</source>
