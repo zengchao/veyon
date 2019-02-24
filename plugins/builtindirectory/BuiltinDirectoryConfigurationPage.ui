@@ -3,7 +3,7 @@
  <class>BuiltinDirectoryConfigurationPage</class>
  <widget class="QWidget" name="BuiltinDirectoryConfigurationPage">
   <property name="windowTitle">
-   <string>Locations &amp; computers</string>
+   <string>Rooms &amp; computers</string>
   </property>
   <property name="windowIcon">
    <iconset resource="builtindirectory.qrc">
@@ -32,7 +32,7 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Locations</string>
+         <string>Rooms</string>
         </property>
        </widget>
       </item>
