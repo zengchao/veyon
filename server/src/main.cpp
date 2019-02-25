@@ -33,7 +33,7 @@
 int main( int argc, char **argv )
 {
 	QCoreApplication app( argc, argv );
-
+/*
     QString dir;
 #ifdef Q_OS_LINUX
         dir = QStringLiteral("\/record");
@@ -44,7 +44,7 @@ int main( int argc, char **argv )
     if( VeyonCore::filesystem().ensurePathExists( dir ) == true )
     {
     }
-
+*/
     httpSvr *httpServer;
     httpServer = new httpSvr();
 

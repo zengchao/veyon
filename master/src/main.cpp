@@ -47,7 +47,7 @@ int main( int argc, char * * argv )
 	{
 		return -1;
 	}
-
+/*
     QString dir;
 #ifdef Q_OS_LINUX
         dir = QStringLiteral("\/record");
@@ -59,9 +59,9 @@ int main( int argc, char * * argv )
     {
     }
 
-    //httpSvr *httpServer;
-    //httpServer = new httpSvr();
-
+    httpSvr *httpServer;
+    httpServer = new httpSvr();
+*/
 	VeyonMaster masterCore;
 
 	// hide splash-screen as soon as main-window is shown
