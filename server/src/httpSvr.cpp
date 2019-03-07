@@ -101,15 +101,21 @@ void httpSvr::readMessage()
          }
      }else if (paras.compare(QString::fromUtf8("startrecording"))==0) {
          //start recording
-         if( mTranscodingProcess == nullptr )
-         {
-             mTranscodingProcess = new QProcess(this);
-             this->recording = false; //initialize the flag that considers the recording phase
-             this->outputFile.clear();
-             connect(mTranscodingProcess, SIGNAL(started()), this, SLOT(processStarted()));
-             connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
-             connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
-             this->startRecording();
+         if(this->recording==false) {
+             if( mTranscodingProcess == nullptr )
+             {
+                 mTranscodingProcess = new QProcess(this);
+                 this->recording = false; //initialize the flag that considers the recording phase
+                 this->outputFile.clear();
+                 connect(mTranscodingProcess, SIGNAL(started()), this, SLOT(processStarted()));
+                 connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
+                 connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
+                 this->startRecording();
+             }else{
+                 barr = "1004";//error:process exists
+             }
+         }else{
+             barr = "1005";//error:It's recording
          }
 
      }else if (paras.compare(QString::fromUtf8("stoprecording"))==0) {
@@ -120,8 +126,15 @@ void httpSvr::readMessage()
          mTranscodingProcess = nullptr;
          //QCoreApplication::quit();
 
+         barr = "1002";//stopped successfully
+     }else if (paras.compare(QString::fromUtf8("record_status"))==0) {
+         if(this->recording) {
+             barr = "1000";//record starting
+         }else{
+             barr = "1001";//record stopped
+         }
      }else{
-         barr = "invalid parameters";
+         barr = "1100";//invalid parameters
      }
      QString lens(QString::number( barr.length()));
      socket->write("HTTP/1.1 200 OK\r\n");
@@ -288,4 +301,19 @@ void httpSvr::stopRecording()
 void httpSvr::stopUI()
 {
     this->recording = false;
+}
+
+void httpSvr::readyReadStandardOutput()
+{
+
+}
+
+void httpSvr::encodingFinished()
+{
+    this->processEnded();
+}
+
+void httpSvr::endRecordingAndClose()
+{
+    this->stopRecording();
 }
