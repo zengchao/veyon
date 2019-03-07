@@ -1,9 +1,27 @@
 #include "httpSvr.h"
 #include <QFile>
 #include <QChar>
+
+#include <QCoreApplication>
+#include "FeatureWorkerManager.h"
+#include "LockWidget.h"
+#include "PlatformCoreFunctions.h"
+#include "VeyonServerInterface.h"
+
+#include <QDateTime>
+#include <QDir>
+#include <QFileInfo>
+#include <QApplication>
+#include <QMessageBox>
+#include <QPainter>
+
+#include "VeyonConfiguration.h"
+#include "Filesystem.h"
+#include "ComputerControlInterface.h"
+
 using namespace std;
 
-httpSvr::httpSvr(QObject *parent) : QObject(parent)
+httpSvr::httpSvr(QObject *parent) : QObject(parent),mTranscodingProcess(nullptr)
 {
     socket = 0; // 客户端socket
     server = new QTcpServer(this);
@@ -14,6 +32,7 @@ httpSvr::httpSvr(QObject *parent) : QObject(parent)
         } else {
         qDebug()<<"failed";
     }
+
 }
 
 int httpSvr::port() {
@@ -80,6 +99,27 @@ void httpSvr::readMessage()
             f.close();
             type=QStringLiteral("application/mp4");
          }
+     }else if (paras.compare(QString::fromUtf8("startrecording"))==0) {
+         //start recording
+         if( mTranscodingProcess == nullptr )
+         {
+             mTranscodingProcess = new QProcess(this);
+             this->recording = false; //initialize the flag that considers the recording phase
+             this->outputFile.clear();
+             connect(mTranscodingProcess, SIGNAL(started()), this, SLOT(processStarted()));
+             connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
+             connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
+             this->startRecording();
+         }
+
+     }else if (paras.compare(QString::fromUtf8("stoprecording"))==0) {
+         //stop recording
+         this->stopRecording();
+
+         delete mTranscodingProcess;
+         mTranscodingProcess = nullptr;
+         //QCoreApplication::quit();
+
      }else{
          barr = "invalid parameters";
      }
@@ -108,6 +148,7 @@ void httpSvr::myConnection()
 
 httpSvr::~httpSvr()
 {
+    delete mTranscodingProcess;
     if (socket)
         socket->close();
 }
@@ -162,4 +203,89 @@ QString httpSvr::getFilesInDir(QDir dir)
     string << QStringLiteral("*");
     QFileInfoList list = dir.entryInfoList(string, QDir::AllEntries, QDir::DirsFirst);
     return getFileInfoList(list);
+}
+
+void httpSvr::startRecording()
+{
+    if(this->recording)
+    {
+        this->stopRecording();
+    } else
+    {
+
+        QString program = QStringLiteral("ffmpeg");
+
+        QStringList arguments;
+        QString dir;
+
+#ifdef Q_OS_LINUX
+        dir = QStringLiteral("\/record");
+#else
+        dir = QStringLiteral("c:\\record");
+#endif
+        //VeyonCore::filesystem().expandPath(VeyonCore::config().screenRecordingDirectory());
+        qDebug() << dir;
+        if( VeyonCore::filesystem().ensurePathExists( dir ) == false )
+        {
+            const auto msg = tr( "Could not take a screenRecording as directory %1 doesn't exist and couldn't be created." ).arg( dir );
+            qCritical() << msg.toUtf8().constData();
+            if( qobject_cast<QApplication *>( QCoreApplication::instance() ) )
+            {
+                QMessageBox::critical( nullptr, tr( "ScreenRecording" ), msg );
+            }
+            return;
+        }
+
+        QString m_fileName =  QString( QStringLiteral( "%1_%2.mp4" ) ).arg(
+                            QDate( QDate::currentDate() ).toString( Qt::ISODate ),
+                            QTime( QTime::currentTime() ).toString( Qt::ISODate ) ).
+                        replace( QLatin1Char(':'), QLatin1Char('-') );
+#ifdef Q_OS_LINUX
+        this->outputFile = dir + QStringLiteral("\/") + m_fileName;
+#else
+        this->outputFile = dir + QStringLiteral("\\") + m_fileName;
+#endif
+        arguments << QStringLiteral("-f") << QStringLiteral("gdigrab") << QStringLiteral("-i") << QStringLiteral("desktop")
+                  << QStringLiteral("-r") << QStringLiteral("15") << QStringLiteral("-b:v") << QStringLiteral("200k")
+                  << QStringLiteral("-q:v") << QStringLiteral("0.01")
+                  << this->outputFile;
+
+        qDebug() << arguments;
+        if (QFile::exists(this->outputFile))
+        {
+            QFile::remove(this->outputFile);
+            while(QFile::exists(this->outputFile)) {
+               qDebug() << "output file still there";
+            }
+        }
+
+        mTranscodingProcess->setProcessChannelMode(QProcess::MergedChannels);
+        mTranscodingProcess->start(program, arguments);
+        this->recording= true;
+    }
+}
+
+void httpSvr::processStarted()
+{
+    qDebug() << "processStarted()";
+}
+
+void httpSvr::processEnded()
+{
+    qDebug() << "processEnded()";
+}
+
+void httpSvr::stopRecording()
+{
+    if(this->recording)
+    {
+        mTranscodingProcess->write("q");
+        mTranscodingProcess->waitForFinished(-1);
+        this->stopUI();
+    }
+}
+
+void httpSvr::stopUI()
+{
+    this->recording = false;
 }

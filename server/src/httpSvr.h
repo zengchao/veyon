@@ -11,13 +11,9 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QProcess>
 
 #define PORT 60000 // TCP 端口1
-#ifdef Q_OS_LINUX
-    #define SCREEN_RECORD_PATH "\/record"
-#else
-    #define SCREEN_RECORD_PATH "c:\\record"
-#endif
 
 class httpSvr : public QObject
 {
@@ -35,5 +31,22 @@ public slots:
 private:
     QTcpServer *server;
     int _port;
+
+    QProcess *mTranscodingProcess;
+
+    QString mOutputString;
+
+    QString outputFile;
+
+    bool recording;
+private slots:
+    void startRecording();
+    void processStarted();
+    void processEnded();
+    void stopRecording();
+    void stopUI();
+    void readyReadStandardOutput();
+    void encodingFinished();
+    void endRecordingAndClose();
 signals:
 };
