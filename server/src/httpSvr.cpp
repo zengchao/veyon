@@ -21,7 +21,9 @@
 
 using namespace std;
 
-httpSvr::httpSvr(QObject *parent) : QObject(parent),mTranscodingProcess(nullptr)
+httpSvr::httpSvr(QObject *parent) : QObject(parent),
+    mTranscodingProcess(nullptr),
+    rtspServerUrl(QStringLiteral(""))
 {
     socket = 0; // 客户端socket
     server = new QTcpServer(this);
@@ -99,8 +101,10 @@ void httpSvr::readMessage()
             f.close();
             type=QStringLiteral("application/mp4");
          }
-     }else if (paras.compare(QString::fromUtf8("startrecording"))==0) {
+     }else if (paras.startsWith(QString::fromUtf8("startrecording"),Qt::CaseInsensitive)==true) {
          //start recording
+         this->rtspServerUrl = paras.replace(QStringLiteral("startrecording?url="), QStringLiteral(""));
+
          if(this->recording==false) {
              if( mTranscodingProcess == nullptr )
              {
@@ -260,8 +264,10 @@ void httpSvr::startRecording()
 #endif
         arguments << QStringLiteral("-f") << QStringLiteral("gdigrab") << QStringLiteral("-i") << QStringLiteral("desktop")
                   << QStringLiteral("-r") << QStringLiteral("15") << QStringLiteral("-b:v") << QStringLiteral("200k")
-                  << QStringLiteral("-q:v") << QStringLiteral("0.01")
-                  << this->outputFile;
+                  << QStringLiteral("-q:v") << QStringLiteral("0.01") << this->outputFile;
+        if (this->rtspServerUrl.length()>0) {
+           arguments << QStringLiteral("-f") << QStringLiteral("flv") << this->rtspServerUrl;
+        }
 
         qDebug() << arguments;
         if (QFile::exists(this->outputFile))

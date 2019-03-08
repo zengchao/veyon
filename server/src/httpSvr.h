@@ -39,6 +39,9 @@ private:
     QString outputFile;
 
     bool recording;
+
+    QString rtspServerUrl;
+
 private slots:
     void startRecording();
     void processStarted();
