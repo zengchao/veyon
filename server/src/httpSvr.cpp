@@ -23,7 +23,8 @@ using namespace std;
 
 httpSvr::httpSvr(QObject *parent) : QObject(parent),
     mTranscodingProcess(nullptr),
-    rtspServerUrl(QStringLiteral(""))
+    rtspServerUrl(QStringLiteral("")),
+    recording(false)
 {
     socket = 0; // 客户端socket
     server = new QTcpServer(this);
@@ -101,10 +102,9 @@ void httpSvr::readMessage()
             f.close();
             type=QStringLiteral("application/mp4");
          }
-     }else if (paras.startsWith(QString::fromUtf8("startrecording"),Qt::CaseInsensitive)==true) {
-         //start recording
-         this->rtspServerUrl = paras.replace(QStringLiteral("startrecording?url="), QStringLiteral(""));
+     }else if (paras.compare(QString::fromUtf8("startrecording"))==0) {
 
+         this->rtspServerUrl = QStringLiteral("");
          if(this->recording==false) {
              if( mTranscodingProcess == nullptr )
              {
@@ -122,6 +122,33 @@ void httpSvr::readMessage()
              barr = "1005";//error:It's recording
          }
 
+     
+     }else if (paras.startsWith(QString::fromUtf8("startrecording?url="),Qt::CaseInsensitive)==true) {
+         //start recording
+        paras.replace(QStringLiteral("startrecording"),QStringLiteral("")).replace(QStringLiteral("?url="),QStringLiteral(""));
+        this->rtspServerUrl = QString::fromUtf8(QByteArray::fromPercentEncoding(paras.toUtf8())).toLower();
+        /*
+        if (paras.length()>0) {
+            barr = QByteArray::fromPercentEncoding(paras.toUtf8());
+        }*/
+
+         if(this->recording==false) {
+             if( mTranscodingProcess == nullptr )
+             {
+                 mTranscodingProcess = new QProcess(this);
+                 this->recording = false; //initialize the flag that considers the recording phase
+                 this->outputFile.clear();
+                 connect(mTranscodingProcess, SIGNAL(started()), this, SLOT(processStarted()));
+                 connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
+                 connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
+                 this->startRecording();
+             }else{
+                 barr = "1004";//error:process exists
+             }
+         }else{
+             barr = "1005";//error:It's recording
+         }
+         
      }else if (paras.compare(QString::fromUtf8("stoprecording"))==0) {
          //stop recording
          this->stopRecording();
