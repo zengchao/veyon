@@ -67,7 +67,7 @@ void httpSvr::readMessage()
 
          QFile f(getPath);
          if(!f.open(QIODevice::ReadOnly | QIODevice::Unbuffered))  {
-            barr = getJsonStr(QStringLiteral("-1"),tr("错误:客户端配置文件不存在"));
+            barr = getJsonStr(QStringLiteral("-1"),QStringLiteral("error:configuration file of client is not exist."));
          }else{
             barr = f.readAll();
             f.close();
@@ -76,7 +76,7 @@ void httpSvr::readMessage()
             QJsonDocument jsonDoc(QJsonDocument::fromJson(barr,&json_error));
             if (json_error.error!=QJsonParseError::NoError)
             {
-                barr = getJsonStr(QStringLiteral("-2"),tr("错误:客户端配置文件解析出错"));
+                barr = getJsonStr(QStringLiteral("-2"),QStringLiteral("error:configuration file of client parse error."));
             }else{
                 QJsonObject rootObj = jsonDoc.object();
                 QStringList keys = rootObj.keys();
@@ -144,7 +144,7 @@ void httpSvr::readMessage()
 #endif
          QFile f(getPath);
          if(!f.open(QIODevice::ReadOnly | QIODevice::Unbuffered))  {
-            barr = getJsonStr(QStringLiteral("-3"),tr("错误:客户端录屏文件不存在"));
+            barr = getJsonStr(QStringLiteral("-3"),QStringLiteral("error:video file of client is not exist."));
          }else{
             barr = f.readAll();
             f.close();
@@ -162,13 +162,13 @@ void httpSvr::readMessage()
                  connect(mTranscodingProcess, SIGNAL(started()), this, SLOT(processStarted()));
                  connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
                  connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
-                 barr = getJsonStr(QStringLiteral("0"),tr("录屏成功开始"));
+                 barr = getJsonStr(QStringLiteral("0"),QStringLiteral("starting record."));
                  this->startRecording();
              }else{
-                 barr = getJsonStr(QStringLiteral("-4"),tr("错误:录屏已开始"));
+                 barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("error:already started record"));
              }
          }else{
-             barr = getJsonStr(QStringLiteral("-4"),tr("错误:录屏已开始"));
+             barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("error:already started record"));
          }
      }else if (paras.startsWith(QString::fromUtf8("startrecording?url="),Qt::CaseInsensitive)==true) {
          //start recording
@@ -184,13 +184,13 @@ void httpSvr::readMessage()
                  connect(mTranscodingProcess, SIGNAL(started()), this, SLOT(processStarted()));
                  connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
                  connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
-                 barr = getJsonStr(QStringLiteral("0"),tr("录屏成功开始，推流地址为:")+this->rtspServerUrl);
+                 barr = getJsonStr(QStringLiteral("0"),QStringLiteral("started successfully，rtsp server url:")+this->rtspServerUrl);
                  this->startRecording();
              }else{
-                 barr = getJsonStr(QStringLiteral("-4"),tr("错误:录屏已开始"));
+                 barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("error:already started record"));
              }
          }else{
-             barr = getJsonStr(QStringLiteral("-4"),tr("错误:录屏已开始"));
+             barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("error:already started record"));
          }
          
      }else if (paras.compare(QString::fromUtf8("stoprecording"))==0) {
@@ -200,15 +200,15 @@ void httpSvr::readMessage()
          delete mTranscodingProcess;
          mTranscodingProcess = nullptr;
 
-         barr = getJsonStr(QStringLiteral("0"),tr("录屏成功结束"));
+         barr = getJsonStr(QStringLiteral("0"),QStringLiteral("stopped successfully."));
      }else if (paras.compare(QString::fromUtf8("record_status"))==0) {
          if(this->recording) {
-             barr = getJsonStr(QStringLiteral("1"),tr("录屏状态：进行中"));
+             barr = getJsonStr(QStringLiteral("1"),QStringLiteral("status:starting."));
          }else{
-             barr = getJsonStr(QStringLiteral("2"),tr("录屏状态：已结束或未开始"));
+             barr = getJsonStr(QStringLiteral("2"),QStringLiteral("status:stopped."));
          }
      }else{
-         barr = getJsonStr(QStringLiteral("-5"),tr("错误：无参数"));
+         barr = getJsonStr(QStringLiteral("-5"),QStringLiteral("error:no parameters"));
      }
      QString lens(QString::number( barr.length()));
      socket->write("HTTP/1.1 200 OK\r\n");
