@@ -67,7 +67,7 @@ void httpSvr::readMessage()
 
          QFile f(getPath);
          if(!f.open(QIODevice::ReadOnly | QIODevice::Unbuffered))  {
-            barr = getJsonStr(QStringLiteral("-1"),QStringLiteral("Client Configuration file not found"));
+            barr = getJsonStr(QStringLiteral("-1"),QStringLiteral("错误:客户端配置文件不存在"));
          }else{
             barr = f.readAll();
             f.close();
@@ -76,48 +76,48 @@ void httpSvr::readMessage()
             QJsonDocument jsonDoc(QJsonDocument::fromJson(barr,&json_error));
             if (json_error.error!=QJsonParseError::NoError)
             {
-                qDebug() << "json error";
-                return;
-            }
-            QJsonObject rootObj = jsonDoc.object();
-            QStringList keys = rootObj.keys();
-            for (int i=0;i<keys.size();i++) {
-                qDebug() << "key" << i << "is" << keys.at(i);
-            }
-            QJsonArray barrArray;
-            int p=0;
-            if (rootObj.contains(QStringLiteral("BuiltinDirectory"))) {
-                QJsonObject BuiltinDirectoryObj = rootObj.value(QStringLiteral("BuiltinDirectory")).toObject();
-                if (BuiltinDirectoryObj.contains(QStringLiteral("NetworkObjects"))) {
-                    QJsonObject NetworkObjectsObj = BuiltinDirectoryObj.value(QStringLiteral("NetworkObjects")).toObject();
-                    if (NetworkObjectsObj.contains(QStringLiteral("JsonStoreArray"))) {
-                        QJsonArray JsonStoreArrayObj = NetworkObjectsObj.value(QStringLiteral("JsonStoreArray")).toArray();
-                        for (int i=0;i<JsonStoreArrayObj.size();i++) {
-                            QJsonObject hostObject = JsonStoreArrayObj.at(i).toObject();
-                            //.value(QStringLiteral("BuiltinDirectory")).toObject();
-                            int type = hostObject.value(QStringLiteral("Type")).toInt();
-                            if (type==3)
-                            {
-                                QString HostAddress = hostObject.value(QStringLiteral("HostAddress")).toString();
-                                QString Name = hostObject.value(QStringLiteral("Name")).toString();
-                                QJsonObject newHostObj;
-                                newHostObj.insert(QStringLiteral("HostAddress"),HostAddress);
-                                newHostObj.insert(QStringLiteral("Name"),Name);
+                barr = getJsonStr(QStringLiteral("-2"),QStringLiteral("错误:客户端配置文件解析出错"));
+            }else{
+                QJsonObject rootObj = jsonDoc.object();
+                QStringList keys = rootObj.keys();
+                for (int i=0;i<keys.size();i++) {
+                    qDebug() << "key" << i << "is" << keys.at(i);
+                }
+                QJsonArray barrArray;
+                int p=0;
+                if (rootObj.contains(QStringLiteral("BuiltinDirectory"))) {
+                    QJsonObject BuiltinDirectoryObj = rootObj.value(QStringLiteral("BuiltinDirectory")).toObject();
+                    if (BuiltinDirectoryObj.contains(QStringLiteral("NetworkObjects"))) {
+                        QJsonObject NetworkObjectsObj = BuiltinDirectoryObj.value(QStringLiteral("NetworkObjects")).toObject();
+                        if (NetworkObjectsObj.contains(QStringLiteral("JsonStoreArray"))) {
+                            QJsonArray JsonStoreArrayObj = NetworkObjectsObj.value(QStringLiteral("JsonStoreArray")).toArray();
+                            for (int i=0;i<JsonStoreArrayObj.size();i++) {
+                                QJsonObject hostObject = JsonStoreArrayObj.at(i).toObject();
+                                int type = hostObject.value(QStringLiteral("Type")).toInt();
+                                if (type==3)
+                                {
+                                    QString HostAddress = hostObject.value(QStringLiteral("HostAddress")).toString();
+                                    QString Name = hostObject.value(QStringLiteral("Name")).toString();
+                                    QJsonObject newHostObj;
+                                    newHostObj.insert(QStringLiteral("HostAddress"),HostAddress);
+                                    newHostObj.insert(QStringLiteral("Name"),Name);
 
-                                barrArray.insert(p,newHostObj);
-                                p=p+1;
+                                    barrArray.insert(p,newHostObj);
+                                    p=p+1;
+                                }
                             }
                         }
                     }
                 }
+                if (p==0) {
+                   barr = "[]";
+                }else {
+                    QJsonDocument document;
+                    document.setArray(barrArray);
+                    barr = document.toJson(QJsonDocument::Compact);
+                }                
             }
-            if (p==0) {
-               barr = "[]";
-            }else {
-                QJsonDocument document;
-                document.setArray(barrArray);
-                barr = document.toJson(QJsonDocument::Compact);
-            }
+
          }
      }else if (paras.compare(QString::fromUtf8("file"))==0) {
          //screen recording files in the client machine
@@ -144,8 +144,7 @@ void httpSvr::readMessage()
 #endif
          QFile f(getPath);
          if(!f.open(QIODevice::ReadOnly | QIODevice::Unbuffered))  {
-            barr = getJsonStr(QStringLiteral("-2"),QStringLiteral("Client video files not found"));
-            //barr = "file not found";
+            barr = getJsonStr(QStringLiteral("-3"),QStringLiteral("错误:客户端录屏文件不存在"));
          }else{
             barr = f.readAll();
             f.close();
@@ -163,24 +162,18 @@ void httpSvr::readMessage()
                  connect(mTranscodingProcess, SIGNAL(started()), this, SLOT(processStarted()));
                  connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
                  connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
-                 barr = getJsonStr(QStringLiteral("0"),QStringLiteral("started successfully"));
+                 barr = getJsonStr(QStringLiteral("0"),QStringLiteral("录屏成功开始"));
                  this->startRecording();
              }else{
-                 //barr = "1004";//error:process exists
-                 barr = getJsonStr(QStringLiteral("-3"),QStringLiteral("process exists"));
+                 barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("错误:录屏已开始"));
              }
          }else{
-             //barr = "1005";//error:It's recording
-             barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("It's recording"));
+             barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("错误:录屏已开始"));
          }
      }else if (paras.startsWith(QString::fromUtf8("startrecording?url="),Qt::CaseInsensitive)==true) {
          //start recording
-        paras.replace(QStringLiteral("startrecording"),QStringLiteral("")).replace(QStringLiteral("?url="),QStringLiteral(""));
-        this->rtspServerUrl = QString::fromUtf8(QByteArray::fromPercentEncoding(paras.toUtf8())).toLower();
-        /*
-        if (paras.length()>0) {
-            barr = QByteArray::fromPercentEncoding(paras.toUtf8());
-        }*/
+         paras.replace(QStringLiteral("startrecording"),QStringLiteral("")).replace(QStringLiteral("?url="),QStringLiteral(""));
+         this->rtspServerUrl = QString::fromUtf8(QByteArray::fromPercentEncoding(paras.toUtf8())).toLower();
 
          if(this->recording==false) {
              if( mTranscodingProcess == nullptr )
@@ -191,15 +184,13 @@ void httpSvr::readMessage()
                  connect(mTranscodingProcess, SIGNAL(started()), this, SLOT(processStarted()));
                  connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
                  connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
-                 barr = getJsonStr(QStringLiteral("0"),QStringLiteral("started successfully.And rtsp server url:")+this->rtspServerUrl);
+                 barr = getJsonStr(QStringLiteral("0"),QStringLiteral("录屏成功开始，推流地址为:")+this->rtspServerUrl);
                  this->startRecording();
              }else{
-                 //barr = "1004";//error:process exists
-                 barr = getJsonStr(QStringLiteral("-3"),QStringLiteral("process exists"));
+                 barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("错误:录屏已开始"));
              }
          }else{
-             //barr = "1005";//error:It's recording
-             barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("It's recording"));
+             barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("错误:录屏已开始"));
          }
          
      }else if (paras.compare(QString::fromUtf8("stoprecording"))==0) {
@@ -208,21 +199,16 @@ void httpSvr::readMessage()
 
          delete mTranscodingProcess;
          mTranscodingProcess = nullptr;
-         //QCoreApplication::quit();
 
-         //barr = "1002";//stopped successfully
-         barr = getJsonStr(QStringLiteral("0"),QStringLiteral("stopped successfully"));
+         barr = getJsonStr(QStringLiteral("0"),QStringLiteral("录屏成功结束"));
      }else if (paras.compare(QString::fromUtf8("record_status"))==0) {
          if(this->recording) {
-             //barr = "1000";//record starting
-             barr = getJsonStr(QStringLiteral("1"),QStringLiteral("record starting"));
+             barr = getJsonStr(QStringLiteral("1"),QStringLiteral("录屏状态：进行中"));
          }else{
-             //barr = "1001";//record stopped
-             barr = getJsonStr(QStringLiteral("2"),QStringLiteral("record stopped"));
+             barr = getJsonStr(QStringLiteral("2"),QStringLiteral("录屏状态：已结束或未开始"));
          }
      }else{
-         //barr = "1100";//invalid parameters
-         barr = getJsonStr(QStringLiteral("-5"),QStringLiteral("invalid parameters"));
+         barr = getJsonStr(QStringLiteral("-5"),QStringLiteral("错误：无参数"));
      }
      QString lens(QString::number( barr.length()));
      socket->write("HTTP/1.1 200 OK\r\n");
