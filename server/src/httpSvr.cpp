@@ -66,7 +66,7 @@ void httpSvr::readMessage()
 
          QFile f(getPath);
          if(!f.open(QIODevice::ReadOnly | QIODevice::Unbuffered))  {
-            barr = "file not found";
+            barr = getJsonStr(QStringLiteral("-1"),QStringLiteral("Client Configuration file not found"));
          }else{
             barr = f.readAll();
             f.close();
@@ -96,7 +96,8 @@ void httpSvr::readMessage()
 #endif
          QFile f(getPath);
          if(!f.open(QIODevice::ReadOnly | QIODevice::Unbuffered))  {
-            barr = "file not found";
+            barr = getJsonStr(QStringLiteral("-2"),QStringLiteral("Client video files not found"));
+            //barr = "file not found";
          }else{
             barr = f.readAll();
             f.close();
@@ -114,15 +115,16 @@ void httpSvr::readMessage()
                  connect(mTranscodingProcess, SIGNAL(started()), this, SLOT(processStarted()));
                  connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
                  connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
+                 barr = getJsonStr(QStringLiteral("0"),QStringLiteral("started successfully"));
                  this->startRecording();
              }else{
-                 barr = "1004";//error:process exists
+                 //barr = "1004";//error:process exists
+                 barr = getJsonStr(QStringLiteral("-3"),QStringLiteral("process exists"));
              }
          }else{
-             barr = "1005";//error:It's recording
+             //barr = "1005";//error:It's recording
+             barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("It's recording"));
          }
-
-     
      }else if (paras.startsWith(QString::fromUtf8("startrecording?url="),Qt::CaseInsensitive)==true) {
          //start recording
         paras.replace(QStringLiteral("startrecording"),QStringLiteral("")).replace(QStringLiteral("?url="),QStringLiteral(""));
@@ -141,12 +143,15 @@ void httpSvr::readMessage()
                  connect(mTranscodingProcess, SIGNAL(started()), this, SLOT(processStarted()));
                  connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
                  connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
+                 barr = getJsonStr(QStringLiteral("0"),QStringLiteral("started successfully.And rtsp server url:")+this->rtspServerUrl);
                  this->startRecording();
              }else{
-                 barr = "1004";//error:process exists
+                 //barr = "1004";//error:process exists
+                 barr = getJsonStr(QStringLiteral("-3"),QStringLiteral("process exists"));
              }
          }else{
-             barr = "1005";//error:It's recording
+             //barr = "1005";//error:It's recording
+             barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("It's recording"));
          }
          
      }else if (paras.compare(QString::fromUtf8("stoprecording"))==0) {
@@ -157,15 +162,19 @@ void httpSvr::readMessage()
          mTranscodingProcess = nullptr;
          //QCoreApplication::quit();
 
-         barr = "1002";//stopped successfully
+         //barr = "1002";//stopped successfully
+         barr = getJsonStr(QStringLiteral("0"),QStringLiteral("stopped successfully"));
      }else if (paras.compare(QString::fromUtf8("record_status"))==0) {
          if(this->recording) {
-             barr = "1000";//record starting
+             //barr = "1000";//record starting
+             barr = getJsonStr(QStringLiteral("1"),QStringLiteral("record starting"));
          }else{
-             barr = "1001";//record stopped
+             //barr = "1001";//record stopped
+             barr = getJsonStr(QStringLiteral("2"),QStringLiteral("record stopped"));
          }
      }else{
-         barr = "1100";//invalid parameters
+         //barr = "1100";//invalid parameters
+         barr = getJsonStr(QStringLiteral("-5"),QStringLiteral("invalid parameters"));
      }
      QString lens(QString::number( barr.length()));
      socket->write("HTTP/1.1 200 OK\r\n");
@@ -239,6 +248,20 @@ QString httpSvr::getFileInfoList(QFileInfoList list)
     QString json_str = QString::fromUtf8(byte_array);
 
     return json_str;
+}
+
+QByteArray httpSvr::getJsonStr(QString code,QString message)
+{
+    QJsonDocument document;
+    QJsonObject jsonObj;
+
+    jsonObj.insert(QStringLiteral("code"),code);
+    jsonObj.insert(QStringLiteral("message"),message);
+    document.setObject(jsonObj);
+
+    QByteArray byte_array = document.toJson(QJsonDocument::Compact);
+
+    return byte_array;
 }
 
 QString httpSvr::getFilesInDir(QDir dir)

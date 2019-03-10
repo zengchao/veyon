@@ -28,6 +28,7 @@ public slots:
     void readMessage();
     QString getFileInfoList(QFileInfoList list);
     QString getFilesInDir(QDir dir);
+    QByteArray getJsonStr(QString code,QString message);
 private:
     QTcpServer *server;
     int _port;
