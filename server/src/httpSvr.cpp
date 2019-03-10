@@ -21,10 +21,11 @@
 
 using namespace std;
 
-httpSvr::httpSvr(QObject *parent) : QObject(parent),
+httpSvr::httpSvr(QObject *parent) :
+    QObject(parent),
     mTranscodingProcess(nullptr),
-    rtspServerUrl(QStringLiteral("")),
-    recording(false)
+    recording(false),
+    rtspServerUrl(QStringLiteral(""))
 {
     socket = 0; // 客户端socket
     server = new QTcpServer(this);
