@@ -54,7 +54,7 @@ void httpSvr::readMessage()
      getURL.replace(QStringLiteral("\r"), QStringLiteral("")).replace(QStringLiteral("\n"), QStringLiteral(""));
      QString paras = QString::fromUtf8(QByteArray::fromPercentEncoding(getURL.toUtf8())).toLower();
 
-     if (paras.compare(QString::fromUtf8("list"))==0)
+     if (paras.compare(QString::fromUtf8("hostlist"))==0)
      {
          QByteArray ba;
          QString getPath;
@@ -70,6 +70,53 @@ void httpSvr::readMessage()
          }else{
             barr = f.readAll();
             f.close();
+
+            QJsonParseError json_error;
+            QJsonDocument jsonDoc(QJsonDocument::fromJson(barr,&json_error));
+            if (json_error.error!=QJsonParseError::NoError)
+            {
+                qDebug() << "json error";
+                return;
+            }
+            QJsonObject rootObj = jsonDoc.object();
+            QStringList keys = rootObj.keys();
+            for (int i=0;i<keys.size();i++) {
+                qDebug() << "key" << i << "is" << keys.at(i);
+            }
+            QJsonArray barrArray;
+            int p=0;
+            if (rootObj.contains(QStringLiteral("BuiltinDirectory"))) {
+                QJsonObject BuiltinDirectoryObj = rootObj.value(QStringLiteral("BuiltinDirectory")).toObject();
+                if (BuiltinDirectoryObj.contains(QStringLiteral("NetworkObjects"))) {
+                    QJsonObject NetworkObjectsObj = BuiltinDirectoryObj.value(QStringLiteral("NetworkObjects")).toObject();
+                    if (NetworkObjectsObj.contains(QStringLiteral("JsonStoreArray"))) {
+                        QJsonArray JsonStoreArrayObj = NetworkObjectsObj.value(QStringLiteral("JsonStoreArray")).toArray();
+                        for (int i=0;i<JsonStoreArrayObj.size();i++) {
+                            QJsonObject hostObject = JsonStoreArrayObj.at(i).toObject();
+                            //.value(QStringLiteral("BuiltinDirectory")).toObject();
+                            int type = hostObject.value(QStringLiteral("Type")).toInt();
+                            if (type==3)
+                            {
+                                QString HostAddress = hostObject.value(QStringLiteral("HostAddress")).toString();
+                                QString Name = hostObject.value(QStringLiteral("Name")).toString();
+                                QJsonObject newHostObj;
+                                newHostObj.insert(QStringLiteral("HostAddress"),HostAddress);
+                                newHostObj.insert(QStringLiteral("Name"),Name);
+
+                                barrArray.insert(p,newHostObj);
+                                p=p+1;
+                            }
+                        }
+                    }
+                }
+            }
+            if (p==0) {
+               barr = "[]";
+            }else {
+                QJsonDocument document;
+                document.setArray(barrArray);
+                barr = document.toJson(QJsonDocument::Compact);
+            }
          }
      }else if (paras.compare(QString::fromUtf8("file"))==0) {
          //screen recording files in the client machine
