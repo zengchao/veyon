@@ -165,10 +165,10 @@ void httpSvr::readMessage()
                  barr = getJsonStr(QStringLiteral("0"),QStringLiteral("starting record."));
                  this->startRecording();
              }else{
-                 barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("error:already started record"));
+                 barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("error:already started record."));
              }
          }else{
-             barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("error:already started record"));
+             barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("error:already started record."));
          }
      }else if (paras.startsWith(QString::fromUtf8("startrecording?url="),Qt::CaseInsensitive)==true) {
          //start recording
@@ -184,13 +184,13 @@ void httpSvr::readMessage()
                  connect(mTranscodingProcess, SIGNAL(started()), this, SLOT(processStarted()));
                  connect(mTranscodingProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readyReadStandardOutput()));
                  connect(mTranscodingProcess, SIGNAL(finished(int)), this, SLOT(encodingFinished()));
-                 barr = getJsonStr(QStringLiteral("0"),QStringLiteral("started successfully，rtsp server url:")+this->rtspServerUrl);
+                 barr = getJsonStr(QStringLiteral("0"),QStringLiteral("started successfully,rtsp server url:")+this->rtspServerUrl);
                  this->startRecording();
              }else{
-                 barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("error:already started record"));
+                 barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("error:already started record."));
              }
          }else{
-             barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("error:already started record"));
+             barr = getJsonStr(QStringLiteral("-4"),QStringLiteral("error:already started record."));
          }
          
      }else if (paras.compare(QString::fromUtf8("stoprecording"))==0) {
@@ -208,7 +208,7 @@ void httpSvr::readMessage()
              barr = getJsonStr(QStringLiteral("2"),QStringLiteral("status:stopped."));
          }
      }else{
-         barr = getJsonStr(QStringLiteral("-5"),QStringLiteral("error:no parameters"));
+         barr = getJsonStr(QStringLiteral("-5"),QStringLiteral("error:no parameters."));
      }
      QString lens(QString::number( barr.length()));
      socket->write("HTTP/1.1 200 OK\r\n");
